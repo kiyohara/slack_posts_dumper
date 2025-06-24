@@ -66,6 +66,16 @@
   - [x] 添付ファイル、リアクション、スレッド情報の表示
   - [x] エラーハンドリング・詳細ログ出力
   - [x] 動作確認（slack_posts_dumper_testチャンネルで成功）
+- [x] ユーザー情報解決ユーティリティ（UserResolver）実装
+  - [x] src/utils/user_resolver.py 作成
+  - [x] ユーザーIDからユーザー情報を取得するユーティリティクラス
+  - [x] 内部キャッシュ機能（TTL制御、デフォルト1時間）
+  - [x] アイコン情報の取得（アバター画像URL、ステータス絵文字、ステータステキスト）
+  - [x] 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
+  - [x] その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
+  - [x] テストツール（scripts/test_user_resolver.py）の実装
+  - [x] 既存スクリプト（get_latest_message.py）への統合
+  - [x] README.md、PROJECT_SPEC.md、PROGRESS.mdの更新
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
@@ -102,6 +112,14 @@
   - 添付ファイル、リアクション、スレッド情報の表示
   - エラーハンドリング・詳細ログ出力
   - 動作確認（slack_posts_dumper_testチャンネルで成功）
+- **ユーザー情報解決ユーティリティ（UserResolver）**: 実装完了
+  - ユーザーIDからユーザー情報を取得するユーティリティクラス
+  - 内部キャッシュ機能（TTL制御、デフォルト1時間）
+  - アイコン情報の取得（アバター画像URL、ステータス絵文字、ステータステキスト）
+  - 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
+  - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
+  - テストツール（test_user_resolver.py）の実装
+  - 既存スクリプト（get_latest_message.py）への統合
 
 ### プロジェクト構造
 ```
@@ -123,13 +141,17 @@ slack_posts_dumper/
 ├── src/                         ✅
 │   ├── __init__.py              ✅
 │   ├── slack_checker.py         ✅
-│   └── config/                  ✅
+│   ├── config/                  ✅
+│   │   ├── __init__.py          ✅
+│   │   └── settings.py          ✅
+│   └── utils/                   ✅
 │       ├── __init__.py          ✅
-│       └── settings.py          ✅
+│       └── user_resolver.py     ✅
 ├── scripts/                     ✅
 │   ├── get_workspace_id.py      ✅
 │   ├── get_channels.py          ✅
-│   └── get_latest_message.py    ✅
+│   ├── get_latest_message.py    ✅
+│   └── test_user_resolver.py    ✅
 └── (今後: templates/, static/, 実装ファイル)
 ```
 
@@ -228,6 +250,17 @@ slack_posts_dumper/
   - 添付ファイル、リアクション、スレッド情報の表示
   - エラーハンドリング・詳細ログ出力
   - 動作確認（slack_posts_dumper_testチャンネルで成功）
+- **ユーザー情報解決ユーティリティ（UserResolver）実装・統合**
+  - src/utils/user_resolver.py 作成
+  - ユーザーIDからユーザー情報を取得するユーティリティクラス
+  - 内部キャッシュ機能（TTL制御、デフォルト1時間）
+  - アイコン情報の取得（アバター画像URL、ステータス絵文字、ステータステキスト）
+  - 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
+  - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
+  - テストツール（scripts/test_user_resolver.py）の実装
+  - 既存スクリプト（get_latest_message.py）への統合
+  - README.md、PROJECT_SPEC.md、PROGRESS.mdの更新
+- **プロジェクト簡素化**
 
 ---
 

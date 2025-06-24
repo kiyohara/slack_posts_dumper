@@ -22,6 +22,7 @@ from src.config.settings import (
     validate_channel_id_format,
     validate_workspace_id_format
 )
+from src.utils.user_resolver import create_user_resolver
 
 
 def parse_arguments():
@@ -105,6 +106,9 @@ def get_latest_message(
         
         client = WebClient(token=bot_token)
         
+        # UserResolverインスタンスを作成
+        user_resolver = create_user_resolver(client)
+        
         if verbose:
             print(f"conversations.history APIを呼び出し中... (チャネル: {channel_id})")
         
@@ -127,29 +131,17 @@ def get_latest_message(
         
         message = messages[0]
         
-        # ユーザー情報を取得
+        # ユーザー情報を取得（UserResolverを使用）
         user_id = message.get("user")
         if user_id and user_id != "USLACKBOT":
             try:
                 if verbose:
-                    print(f"users.info APIを呼び出し中... (ユーザー: {user_id})")
+                    print(f"ユーザー情報を取得中... (ユーザー: {user_id})")
                 
-                user_response = client.users_info(user=user_id)
-                if user_response["ok"]:
-                    user_info = user_response.get("user", {})
-                    # 表示名を優先、なければユーザー名を使用
-                    display_name = user_info.get("profile", {}).get("display_name")
-                    real_name = user_info.get("profile", {}).get("real_name")
-                    username = user_info.get("name")
-                    
-                    if display_name:
-                        message["username"] = display_name
-                    elif real_name:
-                        message["username"] = real_name
-                    elif username:
-                        message["username"] = username
-                    else:
-                        message["username"] = "Unknown"
+                # UserResolverを使用してユーザー情報を取得
+                user_info = user_resolver.get_user_info(user_id)
+                if user_info:
+                    message["username"] = user_info.get("display_name", "Unknown")
                 else:
                     message["username"] = "Unknown"
             except Exception as e:

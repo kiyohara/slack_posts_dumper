@@ -22,6 +22,12 @@ Slackチャネルの投稿をHTML形式で保存するツール
   - `channels:read` - チャネル情報を読み取り
   - `users:read` - ユーザー情報を読み取り
   - `files:read` - ファイル情報を読み取り（添付ファイル対応）
+- **ユーザー情報解決ユーティリティ（UserResolver）**
+  - ユーザーIDからユーザー情報を取得
+  - 内部キャッシュ機能（TTL制御）
+  - アイコン情報（アバター画像URL、ステータス絵文字、ステータステキスト）
+  - 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
+  - その他の情報（メールアドレス、チームID、Bot判定、削除判定）
 
 ### 2. データ取得
 - 指定したチャネルの全投稿を取得
@@ -65,9 +71,12 @@ slack_posts_dumper/
 │   ├── slack_client.py       # 本体（今後実装）
 │   ├── html_generator.py     # 本体（今後実装）
 │   ├── data_processor.py     # 本体（今後実装）
-│   └── config/
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── settings.py
+│   └── utils/
 │       ├── __init__.py
-│       └── settings.py
+│       └── user_resolver.py  # ユーザー情報解決ユーティリティ
 ├── scripts/
 │   ├── get_workspace_id.py   # Workspace ID取得用スクリプト（human/json両対応）
 │   ├── get_channels.py       # チャネル一覧取得用スクリプト
@@ -108,6 +117,14 @@ slack_posts_dumper/
   - 添付ファイル、リアクション、スレッド情報の表示
   - エラーハンドリング・詳細ログ出力
   - 動作確認（slack_posts_dumper_testチャンネルで成功）
+- **ユーザー情報解決ユーティリティ（UserResolver）の実装**
+  - ユーザーIDからユーザー情報を取得するユーティリティクラス
+  - 内部キャッシュ機能（TTL制御、デフォルト1時間）
+  - アイコン情報の取得（アバター画像URL、ステータス絵文字、ステータステキスト）
+  - 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
+  - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
+  - テストツール（test_user_resolver.py）の実装
+  - 既存スクリプト（get_latest_message.py）への統合
 - **プロジェクト簡素化**
   - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - 設定の最適化・セキュリティ向上
@@ -150,6 +167,7 @@ slack_posts_dumper/
 - ✅ チャネル一覧取得ツール
 - ✅ 最新メッセージ取得ツール
 - ✅ 設定管理モジュール
+- ✅ ユーザー情報解決ユーティリティ（UserResolver）
 
 ### 動作確認済み環境
 - **Workspace**: 設定済み

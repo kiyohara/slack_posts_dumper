@@ -396,6 +396,170 @@ python scripts/get_latest_message.py --format json
 - システムメッセージ（Bot参加、チャンネル作成など）も取得されます
 - プライベートチャンネルの場合、Botを招待する必要があります
 
+### ユーザー情報解決ユーティリティ
+
+SlackのユーザーIDからユーザー情報を取得するためのユーティリティライブラリが用意されています。内部にキャッシュ機構を持ち、API呼び出し回数を最小限に抑えることができます。
+
+#### 機能
+- **ユーザー情報の取得**: ユーザーIDからユーザーの詳細情報を取得
+- **キャッシュ機能**: 一度取得したユーザー情報をメモリにキャッシュ
+- **TTL制御**: キャッシュの有効期限を設定可能（デフォルト: 1時間）
+- **表示名の自動解決**: 表示名、実名、ユーザー名の優先順位で表示名を決定
+- **アイコン情報の取得**: アバター画像URL、ステータス絵文字、ステータステキスト
+- **その他の情報**: メールアドレス、チームID、Bot判定、削除判定
+- **エラーハンドリング**: ユーザーが見つからない場合の適切な処理
+
+#### 使用例
+
+```python
+from slack_sdk import WebClient
+from src.utils.user_resolver import create_user_resolver
+
+# Slackクライアントを初期化
+client = WebClient(token="xoxb-your-bot-token")
+
+# UserResolverインスタンスを作成（キャッシュTTL: 1時間）
+resolver = create_user_resolver(client, cache_ttl=3600)
+
+# ユーザー情報を取得
+user_info = resolver.get_user_info("U1234567890")
+if user_info:
+    print(f"表示名: {user_info['display_name']}")
+    print(f"実名: {user_info['profile']['real_name']}")
+    print(f"ユーザー名: {user_info['name']}")
+
+# 表示名のみを取得
+display_name = resolver.get_user_display_name("U1234567890")
+print(f"表示名: {display_name}")
+
+# アイコン情報を取得
+avatar_url = resolver.get_user_avatar_url("U1234567890")
+status_emoji = resolver.get_user_status_emoji("U1234567890")
+status_text = resolver.get_user_status_text("U1234567890")
+print(f"アバターURL: {avatar_url}")
+print(f"ステータス絵文字: {status_emoji}")
+print(f"ステータステキスト: {status_text}")
+
+# その他の情報を取得
+email = resolver.get_user_email("U1234567890")
+team_id = resolver.get_user_team_id("U1234567890")
+is_bot = resolver.get_user_is_bot("U1234567890")
+print(f"メールアドレス: {email}")
+print(f"チームID: {team_id}")
+print(f"Bot: {is_bot}")
+
+# キャッシュをクリア
+resolver.clear_cache()
+
+# キャッシュ情報を取得
+cache_info = resolver.get_cache_info()
+print(f"キャッシュ済みユーザー数: {cache_info['total_cached_users']}")
+```
+
+#### テストツール
+
+UserResolverの動作をテストするためのツールが用意されています。
+
+##### 実行例
+```bash
+# 環境変数から設定を取得してテスト
+python scripts/test_user_resolver.py
+
+# 特定のユーザーIDを指定してテスト
+python scripts/test_user_resolver.py --user-id U1234567890
+
+# キャッシュTTLを変更してテスト
+python scripts/test_user_resolver.py --cache-ttl 1800
+
+# 強制リフレッシュでテスト
+python scripts/test_user_resolver.py --force-refresh
+
+# 詳細ログ出力
+python scripts/test_user_resolver.py --verbose
+```
+
+##### オプション
+- `--bot-token` : Slack Bot Token（引数があれば優先、なければ環境変数SLACK_BOT_TOKEN）
+- `--user-id` : テスト対象のユーザーID（指定しない場合は現在のユーザー）
+- `--cache-ttl` : キャッシュの有効期限（秒、デフォルト: 3600）
+- `--force-refresh` : キャッシュを無視して強制的に再取得
+- `--verbose, -v` : 詳細ログ出力
+
+##### テスト内容
+1. **ユーザー情報の取得テスト**: 基本的なユーザー情報取得機能
+2. **個別メソッドのテスト**: 表示名、実名、ユーザー名の個別取得
+3. **キャッシュ機能のテスト**: キャッシュによる高速化効果の確認
+4. **キャッシュ情報の表示**: キャッシュの状態確認
+5. **キャッシュクリアのテスト**: キャッシュクリア機能の確認
+
+##### 出力例
+```
+=== UserResolverテスト ===
+テスト対象ユーザーID: U1234567890
+キャッシュTTL: 3600秒
+強制リフレッシュ: False
+
+1. ユーザー情報の取得テスト
+----------------------------------------
+✓ ユーザー情報の取得に成功
+  ユーザーID: U1234567890
+  表示名: John Doe
+  実名: John Doe
+  ユーザー名: john_doe
+  メールアドレス: john.doe@example.com
+
+2. 個別メソッドのテスト
+----------------------------------------
+表示名: John Doe
+実名: John Doe
+ユーザー名: john_doe
+アバターURL: https://secure.gravatar.com/avatar/...
+ステータス絵文字: 🏠
+ステータステキスト: Working from home
+メールアドレス: john.doe@example.com
+チームID: T0000000001
+Bot: False
+削除済み: False
+
+アバター画像サイズ別テスト:
+  サイズ24: https://secure.gravatar.com/avatar/...&s=24
+  サイズ32: https://secure.gravatar.com/avatar/...&s=32
+  サイズ48: https://secure.gravatar.com/avatar/...&s=48
+  サイズ72: https://secure.gravatar.com/avatar/...&s=72
+  サイズ192: https://secure.gravatar.com/avatar/...&s=192
+  サイズ512: https://secure.gravatar.com/avatar/...&s=512
+  サイズ1024: https://secure.gravatar.com/avatar/...&s=1024
+
+3. キャッシュ機能のテスト
+----------------------------------------
+初回取得時間: 0.1234秒
+2回目取得時間: 0.0001秒
+キャッシュ効果: 1234.0倍高速
+
+4. キャッシュ情報
+----------------------------------------
+キャッシュ済みユーザー数: 1
+有効キャッシュ数: 1
+期限切れキャッシュ数: 0
+キャッシュTTL: 3600秒
+
+5. キャッシュクリアのテスト
+----------------------------------------
+キャッシュクリア前:
+  キャッシュ済みユーザー数: 1
+キャッシュクリア後:
+  キャッシュ済みユーザー数: 0
+
+=== テスト完了 ===
+```
+
+#### 注意事項
+- Bot Token（xoxb-で始まる）が必要です
+- `users:read`権限が必要です
+- キャッシュはメモリ上に保存されるため、プログラム終了時に失われます
+- 大量のユーザー情報を取得する場合は、定期的に`cleanup_expired_cache()`を呼び出すことを推奨します
+- ユーザーが見つからない場合は`None`を返します
+
 ### .env 設定例
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
