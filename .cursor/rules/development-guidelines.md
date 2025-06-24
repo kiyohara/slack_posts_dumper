@@ -52,7 +52,6 @@ slack_posts_dumper/
 
 ## 環境変数
 - `SLACK_BOT_TOKEN`: Slack Bot Token
-- `SLACK_USER_TOKEN`: Slack User Token
 - `OUTPUT_DIR`: 出力ディレクトリ
 - `LOG_LEVEL`: ログレベル
 - `DEBUG`: デバッグモード

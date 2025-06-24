@@ -54,24 +54,6 @@
    - インストール後、「Bot User OAuth Token」が表示される
    - このトークン（`xoxb-`で始まる）をコピー
 
-#### User Token (xoxp-) の取得方法
-
-1. **User Token Scopesの設定**
-   - 同じSlack Appの「OAuth & Permissions」ページで
-   - 「Scopes」セクションの「User Token Scopes」に以下を追加：
-     - `channels:history` - チャネルの履歴を読み取り
-     - `channels:read` - チャネル情報を読み取り
-     - `users:read` - ユーザー情報を読み取り
-     - `files:read` - ファイル情報を読み取り
-
-2. **Appの再インストール**
-   - スコープを追加した後、「Reinstall App」をクリック
-   - 新しい権限を確認して「Allow」をクリック
-
-3. **User OAuth Tokenの取得**
-   - 再インストール後、「User OAuth Token」が表示される
-   - このトークン（`xoxp-`で始まる）をコピー
-
 ### 環境構築手順
 
 1. **Python環境の設定**
@@ -95,7 +77,6 @@
    cp env.example .env
    # .envファイルを編集してSlack APIトークンやチャネルID等を設定
    # SLACK_BOT_TOKEN=xoxb-your-bot-token-here
-   # SLACK_USER_TOKEN=xoxp-your-user-token-here
    # SLACK_WORKSPACE_ID=T1234567890
    # SLACK_CHANNEL_ID=C1234567890
    ```
@@ -220,7 +201,6 @@ python scripts/check_slack_api.py --verbose
 ### .env 設定例
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
-SLACK_USER_TOKEN=xoxp-your-user-token-here
 SLACK_WORKSPACE_ID=T1234567890
 SLACK_CHANNEL_ID=C1234567890
 OUTPUT_DIR=output
