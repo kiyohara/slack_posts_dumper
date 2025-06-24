@@ -184,3 +184,8 @@ slack_posts_dumper/
 - **理由**: プライバシー保護とセキュリティのため
 - **代替記述**: 「設定済み」「成功」「正常動作」などの一般的な記述を使用
 - **例外**: 例示用のID（T0000000001等）は使用可能
+
+## Pythonコマンド実行ルール
+- Pythonスクリプトを実行する際は、必ず `poetry run python ...` の形式で実行すること。
+- 例: `poetry run python scripts/get_latest_message.py --format html`
+- 直接 `python ...` で実行しないこと（仮想環境のパスや依存解決のため）。
