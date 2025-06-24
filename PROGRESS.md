@@ -75,9 +75,20 @@
 
 ### 設定状況
 - **SLACK_BOT_TOKEN**: 設定済み ✅
-- **SLACK_WORKSPACE_ID**: T02A6KL7S（kanazawa.rb）✅
+- **SLACK_WORKSPACE_ID**: 設定済み ✅
 - **SLACK_CHANNEL_ID**: 未設定（次回設定予定）
 - **SLACK_USER_TOKEN**: 削除済み（不要）✅
+
+### 動作確認済み機能
+- **Workspace ID取得ツール**: 正常動作確認済み
+  - Workspace ID取得: 成功
+  - 取得日時: 2024年12月
+- **チャネル一覧取得ツール**: 正常動作確認済み
+  - 取得チャネル数: 72件
+  - 検索機能: 正常動作（"meetup"で60件、"general"で1件）
+  - JSON形式出力: 正常動作
+  - テーブル形式出力: 正常動作
+- **Slack API接続確認**: 正常動作確認済み
 
 ### プロジェクト構造
 ```
@@ -104,9 +115,22 @@ slack_posts_dumper/
 │       └── settings.py          ✅
 ├── scripts/                     ✅
 │   ├── check_slack_api.py       ✅
-│   └── get_workspace_id.py      ✅
+│   ├── get_workspace_id.py      ✅
+│   └── get_channels.py          ✅
 └── (今後: templates/, static/, 実装ファイル)
 ```
+
+### 現在のGit状況
+- **ブランチ**: main
+- **最新コミット**: 04a625b "feat: チャネル一覧取得ツールの実装とドキュメント更新"
+- **変更状態**: クリーン（未コミット変更なし）
+
+### 復元に必要な情報
+- **Poetry環境**: `poetry install --no-root` で依存関係復元
+- **実行コマンド**: `poetry run python scripts/get_channels.py` で動作確認
+- **環境変数**: .envファイルにSLACK_BOT_TOKENが設定済み
+- **Workspace ID**: 設定済み
+- **利用可能チャネル**: 72件（general, random, github, twitter等）
 
 ## 次のステップ 🎯
 

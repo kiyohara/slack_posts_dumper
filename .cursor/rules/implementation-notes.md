@@ -27,6 +27,27 @@
 - ✅ Bot Token、Workspace ID、Channel IDの取得・検証機能
 - ✅ 環境変数・コマンドライン引数の優先順位処理
 
+## 現在の実装状況（復元用）
+
+### 動作確認済み環境
+- **Python**: 3.13.1 (pyenv管理)
+- **Poetry**: 依存関係管理済み
+- **Slack API**: slack-sdk 3.35.0以上
+- **Workspace**: 設定済み
+- **利用可能チャネル**: 72件
+
+### 復元手順
+1. **環境復元**: `poetry install --no-root`
+2. **動作確認**: `poetry run python scripts/get_channels.py --verbose`
+3. **検索テスト**: `poetry run python scripts/get_channels.py --search "general"`
+4. **JSON出力テスト**: `poetry run python scripts/get_channels.py --format json`
+
+### 既知の動作確認結果
+- Workspace ID取得: 成功
+- チャネル一覧取得: 72件成功
+- 検索機能: "meetup"で60件、"general"で1件
+- エラーハンドリング: 正常動作確認済み
+
 ## Slack API関連
 - **必要な権限**:
   - `channels:history` - チャネルの履歴を読み取り

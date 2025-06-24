@@ -129,4 +129,31 @@ slack_posts_dumper/
 - Slack APIのレート制限に注意
 - 大量のデータ取得時はページネーション対応
 - 個人情報の取り扱いに注意
-- 添付ファイルの容量制限を考慮 
+- 添付ファイルの容量制限を考慮
+
+## 現在の実装状況（復元用）
+
+### 完了済み機能
+- ✅ Slack API接続確認（最小構成）
+- ✅ Workspace ID取得ツール
+- ✅ チャネル一覧取得ツール
+- ✅ 設定管理モジュール
+
+### 動作確認済み環境
+- **Workspace**: 設定済み
+- **利用可能チャネル**: 72件
+- **検索機能**: "meetup"で60件、"general"で1件
+- **出力形式**: テーブル形式・JSON形式
+
+### 復元手順
+1. **環境復元**: `poetry install --no-root`
+2. **動作確認**: `poetry run python scripts/get_channels.py --verbose`
+3. **Workspace確認**: `poetry run python scripts/get_workspace_id.py`
+4. **API接続確認**: `poetry run python scripts/check_slack_api.py`
+
+### 次の実装予定
+- templates/ディレクトリ作成
+- static/ディレクトリ作成
+- Slack API連携本体（slack_client.py）
+- データ処理（data_processor.py）
+- HTML出力（html_generator.py, Jinja2テンプレート） 
