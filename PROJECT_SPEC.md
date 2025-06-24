@@ -56,42 +56,40 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - **JavaScript**: インタラクティブ機能用
 - **依存管理**: Poetry（`pyproject.toml`/`poetry.lock`）
 
-## ファイル構成（予定・一部実装済み）
+## ファイル構成（2024年6月時点・現状）
 ```
-slack_posts_dumper/
-├── README.md
-├── PROJECT_SPEC.md
-├── pyproject.toml
-├── poetry.lock
-├── config/
-│   └── settings.py
-├── src/
-│   ├── __init__.py
-│   ├── slack_checker.py      # Slack API接続確認（最小構成）
-│   ├── slack_client.py       # 本体（今後実装）
-│   ├── html_generator.py     # 本体（今後実装）
-│   ├── data_processor.py     # 本体（今後実装）
-│   ├── config/
+.
+├── .cursorignore                  # Cursor用無視ファイル
+├── .env                           # 環境変数ファイル（git管理外）
+├── .envrc                         # direnv用設定ファイル
+├── .gitignore                     # Git無視ファイル
+├── .python-version                # pyenv用Pythonバージョン指定
+├── env.example                    # 環境変数サンプル
+├── output/                        # 生成されたHTML等の出力先
+│   └── latest_message.html        # 最新メッセージのHTML出力例
+├── poetry.lock                    # Poetry依存ロックファイル
+├── PROGRESS.md                    # 開発進捗記録
+├── PROJECT_SPEC.md                # 本仕様書
+├── pyproject.toml                 # Poetryプロジェクト設定
+├── README.md                      # プロジェクト概要・使い方
+├── scripts/                       # 各種コマンドラインスクリプト
+│   ├── get_channels.py            # チャネル一覧取得ツール
+│   ├── get_latest_message.py      # 最新メッセージ取得ツール
+│   ├── get_workspace_id.py        # Workspace ID取得ツール
+│   └── test_user_resolver.py      # UserResolverテストツール
+├── src/                           # Pythonパッケージ本体
+│   ├── __init__.py                # パッケージ初期化
+│   ├── config/                    # 設定管理モジュール
 │   │   ├── __init__.py
-│   │   └── settings.py
-│   └── utils/
+│   │   └── settings.py            # 設定値取得・検証
+│   ├── message_renderer.py        # メッセージHTMLレンダラ
+│   ├── slack_checker.py           # Slack API接続確認
+│   └── utils/                     # ユーティリティ群
 │       ├── __init__.py
-│       └── user_resolver.py  # ユーザー情報解決ユーティリティ
-├── scripts/
-│   ├── get_workspace_id.py   # Workspace ID取得用スクリプト（human/json両対応）
-│   ├── get_channels.py       # チャネル一覧取得用スクリプト
-│   └── get_latest_message.py # 最新メッセージ取得用スクリプト
-├── templates/
-│   ├── base.html
-│   └── channel.html
-├── static/
-│   ├── css/
-│   │   └── slack-style.css
-│   └── js/
-│       └── main.js
-├── output/
-│   └── （生成されたHTMLファイル）
-└── env.example
+│       └── user_resolver.py       # ユーザー情報解決ユーティリティ
+└── templates/                     # Jinja2テンプレート
+    ├── message.html               # メッセージ表示用テンプレート
+    └── README.md                  # テンプレートディレクトリ説明
 ```
 
 ## 実装フェーズ
