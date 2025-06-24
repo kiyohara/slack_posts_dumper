@@ -10,6 +10,10 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - Slack APIから最新メッセージ1件を取得し、接続・認証・権限の動作確認
 - コマンドライン引数と環境変数の優先順位対応
 - エラー時は詳細なメッセージを出力
+- **Workspace ID取得ツール**
+  - Bot Tokenを使用したWorkspace ID自動取得
+  - auth.test APIによるWorkspace情報取得
+  - .envファイル設定用の出力形式
 
 ### 1. Slack API連携
 - Slack Web APIを使用
@@ -65,7 +69,8 @@ slack_posts_dumper/
 │       ├── __init__.py
 │       └── settings.py
 ├── scripts/
-│   └── check_slack_api.py    # Slack API接続確認用スクリプト
+│   ├── check_slack_api.py    # Slack API接続確認用スクリプト
+│   └── get_workspace_id.py   # Workspace ID取得用スクリプト
 ├── templates/
 │   ├── base.html
 │   └── channel.html
@@ -86,6 +91,10 @@ slack_posts_dumper/
 - コマンドライン引数・環境変数の優先順位対応
 - 最新メッセージ1件取得・表示
 - 動作確認
+- **Workspace ID取得ツールの実装**
+  - Bot Tokenを使用したWorkspace ID自動取得
+  - auth.test APIによるWorkspace情報取得
+  - 動作確認・.envファイル自動更新
 
 ### Phase 1: 基本機能
 - Slack API接続本体

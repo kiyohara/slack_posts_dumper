@@ -47,6 +47,11 @@
   - [x] コマンドライン引数・環境変数の優先順位対応
   - [x] Slack API から最新メッセージ1件取得・表示
   - [x] 動作確認
+- [x] Workspace ID取得ツール実装
+  - [x] scripts/get_workspace_id.py 作成
+  - [x] Bot Tokenを使用したWorkspace ID自動取得
+  - [x] auth.test APIによるWorkspace情報取得
+  - [x] 動作確認・.envファイル自動更新
 
 ## 現在の状況 📊
 
@@ -81,7 +86,8 @@ slack_posts_dumper/
 │       ├── __init__.py          ✅
 │       └── settings.py          ✅
 ├── scripts/                     ✅
-│   └── check_slack_api.py       ✅
+│   ├── check_slack_api.py       ✅
+│   └── get_workspace_id.py      ✅
 └── (今後: templates/, static/, 実装ファイル)
 ```
 
@@ -130,6 +136,11 @@ slack_posts_dumper/
   - src/slack_checker.py, src/config/settings.py, scripts/check_slack_api.py 作成
   - Slack API から最新メッセージ取得・表示
   - コマンドライン引数・環境変数の優先順位対応
+- **Workspace ID取得ツール実装・動作確認**
+  - scripts/get_workspace_id.py 作成
+  - Bot Tokenを使用したWorkspace ID自動取得機能
+  - auth.test APIによるWorkspace情報取得
+  - 実際のWorkspace ID取得・動作確認完了
 
 ---
 
