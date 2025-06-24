@@ -118,4 +118,7 @@ Thumbs.db
 # Project specific
 output/
 config/local_settings.py
-*.log 
+*.log
+
+# direnv
+.envrc.local 
