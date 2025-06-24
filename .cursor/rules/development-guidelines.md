@@ -57,4 +57,22 @@ slack_posts_dumper/
 - `LOG_LEVEL`: ログレベル
 - `DEBUG`: デバッグモード
 - `DEFAULT_CHANNEL`: デフォルトチャネル
-- `MAX_MESSAGES`: 最大メッセージ数 
+- `MAX_MESSAGES`: 最大メッセージ数
+
+## ドキュメント作成ルール
+
+### 出力例の記述
+- **汎用性を重視**: 特定のワークスペース、ユーザー、チャネルを特定する情報は避ける
+- **例示用の値を使用**: 実際のIDや名前ではなく、`T1234567890`、`My Workspace`、`U1234567890`などの汎用的な例を使用
+- **プライバシー保護**: 実際のSlackワークスペース名、ユーザー名、URLなどの個人情報を含めない
+- **一貫性を保つ**: 同じドキュメント内では同じ例示用の値を使用する
+
+### 例示用の値
+- **Workspace ID**: `T1234567890`
+- **Channel ID**: `C1234567890`
+- **User ID**: `U1234567890`
+- **Workspace Name**: `My Workspace`
+- **Channel Name**: `general`
+- **User Name**: `slack_bot`
+- **Domain**: `myworkspace`
+- **URL**: `https://myworkspace.slack.com/` 

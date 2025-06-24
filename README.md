@@ -125,18 +125,18 @@ python scripts/get_workspace_id.py --verbose
 #### 出力例
 ```
 === Workspace情報 ===
-Team ID: T02A6KL7S
-Team Name: kanazawa.rb
-Team Domain: None
-User ID: U0934QH9MG9
-User Name: slack_posts_dumper
-URL: https://kzrb.slack.com/
+Team ID: T1234567890
+Team Name: My Workspace
+Team Domain: myworkspace
+User ID: U1234567890
+User Name: slack_bot
+URL: https://myworkspace.slack.com/
 ===================
 
-✅ Workspace ID: T02A6KL7S
+✅ Workspace ID: T1234567890
 
 このTeam IDを.envファイルのSLACK_WORKSPACE_IDに設定してください:
-SLACK_WORKSPACE_ID=T02A6KL7S
+SLACK_WORKSPACE_ID=T1234567890
 ```
 
 #### 注意事項
