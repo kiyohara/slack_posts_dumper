@@ -70,7 +70,8 @@ slack_posts_dumper/
 │       └── settings.py
 ├── scripts/
 │   ├── get_workspace_id.py   # Workspace ID取得用スクリプト
-│   └── get_channels.py       # チャネル一覧取得用スクリプト
+│   ├── get_channels.py       # チャネル一覧取得用スクリプト
+│   └── get_latest_message.py # 最新メッセージ取得用スクリプト
 ├── templates/
 │   ├── base.html
 │   └── channel.html
@@ -101,6 +102,12 @@ slack_posts_dumper/
   - チャネル名での検索機能
   - エラーハンドリング・詳細ログ出力
   - 動作確認（72件のチャネル取得成功）
+- **最新メッセージ取得ツールの実装**
+  - conversations.history APIによる最新メッセージ1件取得
+  - 人間が読みやすい形式とJSON形式での出力対応
+  - 添付ファイル、リアクション、スレッド情報の表示
+  - エラーハンドリング・詳細ログ出力
+  - 動作確認（slack_posts_dumper_testチャンネルで成功）
 - **プロジェクト簡素化**
   - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - 設定の最適化・セキュリティ向上
@@ -110,6 +117,10 @@ slack_posts_dumper/
 - **Channel ID取得ツールの実装** ✅
   - ワークスペース内のチャネル一覧取得 ✅
   - チャネル名からChannel ID検索機能 ✅
+- **最新メッセージ取得ツールの実装** ✅
+  - 指定チャネルの最新メッセージ1件取得 ✅
+  - 人間が読みやすい形式とJSON形式での出力 ✅
+  - 添付ファイル、リアクション、スレッド情報の表示 ✅
 - Slack API連携本体
 - チャネル履歴取得
 - 基本的なHTML出力
@@ -137,6 +148,7 @@ slack_posts_dumper/
 - ✅ Slack API接続確認（最小構成）
 - ✅ Workspace ID取得ツール
 - ✅ チャネル一覧取得ツール
+- ✅ 最新メッセージ取得ツール
 - ✅ 設定管理モジュール
 
 ### 動作確認済み環境
@@ -144,11 +156,13 @@ slack_posts_dumper/
 - **利用可能チャネル**: 72件
 - **検索機能**: "meetup"で60件、"general"で1件
 - **出力形式**: テーブル形式・JSON形式
+- **最新メッセージ取得**: slack_posts_dumper_testチャンネルで成功
 
 ### 復元手順
 1. **環境復元**: `poetry install --no-root`
 2. **動作確認**: `poetry run python scripts/get_channels.py --verbose`
 3. **Workspace確認**: `poetry run python scripts/get_workspace_id.py`
+4. **最新メッセージ確認**: `poetry run python scripts/get_latest_message.py --channel-id C09354HEDC1`
 
 ### 次の実装予定
 - templates/ディレクトリ作成

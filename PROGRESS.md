@@ -58,6 +58,13 @@
   - [x] チャネル名での検索機能
   - [x] エラーハンドリング・詳細ログ出力
   - [x] 動作確認（72件のチャネル取得成功）
+- [x] 最新メッセージ取得ツール実装
+  - [x] scripts/get_latest_message.py 作成
+  - [x] conversations.history APIによる最新メッセージ1件取得
+  - [x] 人間が読みやすい形式とJSON形式での出力対応
+  - [x] 添付ファイル、リアクション、スレッド情報の表示
+  - [x] エラーハンドリング・詳細ログ出力
+  - [x] 動作確認（slack_posts_dumper_testチャンネルで成功）
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
@@ -88,6 +95,12 @@
   - 検索機能: 正常動作（"meetup"で60件、"general"で1件）
   - JSON形式出力: 正常動作
   - テーブル形式出力: 正常動作
+- **最新メッセージ取得ツール**: 正常動作確認済み
+  - 取得日時: 2024年12月
+  - 人間が読みやすい形式とJSON形式での出力対応
+  - 添付ファイル、リアクション、スレッド情報の表示
+  - エラーハンドリング・詳細ログ出力
+  - 動作確認（slack_posts_dumper_testチャンネルで成功）
 
 ### プロジェクト構造
 ```
@@ -114,7 +127,8 @@ slack_posts_dumper/
 │       └── settings.py          ✅
 ├── scripts/                     ✅
 │   ├── get_workspace_id.py      ✅
-│   └── get_channels.py          ✅
+│   ├── get_channels.py          ✅
+│   └── get_latest_message.py    ✅
 └── (今後: templates/, static/, 実装ファイル)
 ```
 
@@ -137,6 +151,11 @@ slack_posts_dumper/
   - [x] scripts/get_channels.py 作成
   - [x] ワークスペース内のチャネル一覧取得
   - [x] チャネル名からChannel ID検索機能
+- [x] 最新メッセージ取得ツール実装
+  - [x] scripts/get_latest_message.py 作成
+  - [x] 指定チャネルの最新メッセージ1件取得
+  - [x] 人間が読みやすい形式とJSON形式での出力
+  - [x] 添付ファイル、リアクション、スレッド情報の表示
 - [ ] templates/ディレクトリ作成
 - [ ] static/ディレクトリ作成
 - [ ] Slack API連携本体（slack_client.py）
@@ -201,6 +220,13 @@ slack_posts_dumper/
   - check_slack_api.pyを削除（get_workspace_id.pyで代替）
   - 各種.mdファイルの更新
   - プロジェクト構造の簡素化完了
+- **最新メッセージ取得ツール実装・動作確認**
+  - scripts/get_latest_message.py 作成
+  - conversations.history APIによる最新メッセージ1件取得
+  - 人間が読みやすい形式とJSON形式での出力対応
+  - 添付ファイル、リアクション、スレッド情報の表示
+  - エラーハンドリング・詳細ログ出力
+  - 動作確認（slack_posts_dumper_testチャンネルで成功）
 
 ---
 

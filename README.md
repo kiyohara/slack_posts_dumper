@@ -54,6 +54,48 @@
    - インストール後、「Bot User OAuth Token」が表示される
    - このトークン（`xoxb-`で始まる）をコピー
 
+#### Botをチャネルに参加させる
+
+作成したBot（App）をターゲットとなるチャネルに参加させる必要があります。以下のいずれかの方法でBotをチャネルに招待してください：
+
+##### 方法A: チャネル内でBotを招待
+1. **ターゲットチャネルに移動**
+   - メッセージを取得したいチャネルを開く
+
+2. **Botを招待**
+   - チャネル内で以下のコマンドを入力：
+   ```
+   /invite @[Bot名]
+   ```
+   - 例：`/invite @slack_posts_dumper`
+
+##### 方法B: チャネル設定からBotを追加
+1. **チャネル名をクリック**
+   - チャネル名の横にある「▼」をクリック
+   - 「設定」を選択
+
+2. **インテグレーションを開く**
+   - 左メニューから「インテグレーション」を選択
+   - 「アプリを追加」をクリック
+
+3. **Botを検索・追加**
+   - 作成したBot名で検索
+   - 「追加」をクリックして権限を確認
+
+##### 方法C: チャネル作成時にBotを追加
+1. **新しいチャネルを作成**
+   - 「+」ボタンから「チャンネルを作成」を選択
+
+2. **Botを追加**
+   - チャンネル作成画面で「プライベートチャンネルにする」の下にある
+   - 「アプリを追加」から作成したBotを選択
+
+#### 注意事項
+- Botがチャネルに参加していない場合、メッセージの取得時に「Botがチャネルに参加していません」エラーが発生します
+- パブリックチャネルの場合、Botは自動的に参加できません。手動で招待する必要があります
+- プライベートチャネルの場合、Botを招待するにはチャンネルの管理者権限が必要です
+- Botがチャネルに参加した後、そのチャネルのメッセージを取得できるようになります
+
 ### 環境構築手順
 
 1. **Python環境の設定**
@@ -249,6 +291,95 @@ python scripts/get_channels.py --search "project"
 - パブリックチャネルのみが取得されます
 - 最大1000件までのチャネルを取得できます
 
+### 最新メッセージ取得ツール
+
+指定したチャネルの最新メッセージ1件を取得して表示するツールが用意されています。
+
+#### 実行例
+```bash
+# 環境変数から設定を取得して最新メッセージを表示
+python scripts/get_latest_message.py
+
+# 引数でチャネルIDを指定
+python scripts/get_latest_message.py --channel-id C1234567890
+
+# 引数でワークスペースIDとチャネルIDを指定
+python scripts/get_latest_message.py --workspace-id T1234567890 --channel-id C1234567890
+
+# 詳細ログ出力
+python scripts/get_latest_message.py --verbose
+
+# JSON形式で出力
+python scripts/get_latest_message.py --format json
+```
+
+#### オプション
+- `--bot-token` : Slack Bot Token（引数があれば優先、なければ環境変数SLACK_BOT_TOKEN）
+- `--workspace-id` : ワークスペースID（引数があれば優先、なければ環境変数SLACK_WORKSPACE_ID）
+- `--channel-id` : チャネルID（引数があれば優先、なければ環境変数SLACK_CHANNEL_ID）
+- `--verbose, -v` : 詳細ログ出力
+- `--format` : 出力形式（`human` または `json`、デフォルト: `human`）
+
+#### 出力例（人間が読みやすい形式）
+```
+=== 最新メッセージ ===
+投稿日時: 2024-01-15 14:30:25
+投稿者: john_doe (U1234567890)
+内容:
+こんにちは！今日の会議について確認したいことがあります。
+添付ファイル: meeting_notes.pdf
+リアクション: thumbsup:3, heart:1
+（スレッド返信）
+```
+
+#### 出力例（JSON形式）
+```json
+{
+  "ts": "1705312225.123456",
+  "datetime": "2024-01-15T14:30:25.123456",
+  "user": "U1234567890",
+  "username": "john_doe",
+  "text": "こんにちは！今日の会議について確認したいことがあります。",
+  "files": [
+    {
+      "name": "meeting_notes.pdf",
+      "url_private": "https://files.slack.com/files-pri/...",
+      "mimetype": "application/pdf"
+    }
+  ],
+  "reactions": [
+    {
+      "name": "thumbsup",
+      "count": 3,
+      "users": ["U1234567890", "U2345678901", "U3456789012"]
+    },
+    {
+      "name": "heart",
+      "count": 1,
+      "users": ["U4567890123"]
+    }
+  ],
+  "thread_ts": "1705312225.123456",
+  "is_thread_reply": true,
+  "type": "message"
+}
+```
+
+#### 取得される情報
+- **基本情報**: 投稿日時、投稿者、メッセージ内容
+- **添付ファイル**: ファイル名、URL、MIMEタイプ
+- **リアクション**: 絵文字とその数、リアクションしたユーザー
+- **スレッド情報**: スレッド返信かどうか、親メッセージのタイムスタンプ
+- **メッセージタイプ**: 通常メッセージ、システムメッセージなど
+
+#### 注意事項
+- Bot Token（xoxb-で始まる）が必要です
+- `channels:history`権限が必要です
+- Botがチャネルに参加している必要があります
+- 最新1件のメッセージのみを取得します
+- システムメッセージ（Bot参加、チャンネル作成など）も取得されます
+- プライベートチャンネルの場合、Botを招待する必要があります
+
 ### .env 設定例
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
@@ -283,4 +414,4 @@ exit
 poetry run black .
 poetry run flake8 .
 poetry run pytest
-``` 
+```
