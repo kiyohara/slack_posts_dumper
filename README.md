@@ -249,32 +249,6 @@ python scripts/get_channels.py --search "project"
 - パブリックチャネルのみが取得されます
 - 最大1000件までのチャネルを取得できます
 
-### Slack API接続確認プログラム
-
-Slack APIとの接続や環境変数の設定が正しいかを確認するためのチェックプログラムが用意されています。
-
-#### 実行例
-```bash
-# 環境変数の値を利用
-python scripts/check_slack_api.py
-
-# コマンドライン引数で上書き
-python scripts/check_slack_api.py --workspace-id T0000000001 --channel-id C0000000001
-
-# 詳細ログ出力
-python scripts/check_slack_api.py --verbose
-```
-
-#### オプション
-- `--workspace-id` : ワークスペースID（引数があれば優先、なければ環境変数SLACK_WORKSPACE_ID）
-- `--channel-id`   : チャネルID（引数があれば優先、なければ環境変数SLACK_CHANNEL_ID）
-- `--verbose, -v`  : 詳細ログ出力
-
-#### 出力例
-- Slack API接続の成否
-- 取得した最新メッセージの内容（タイムスタンプ、ユーザー、本文）
-- エラー時はエラーメッセージ
-
 ### .env 設定例
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here

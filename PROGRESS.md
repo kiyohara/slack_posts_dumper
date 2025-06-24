@@ -42,7 +42,6 @@
 - [x] Slack API接続確認用プログラム実装
   - [x] src/slack_checker.py 作成
   - [x] src/config/settings.py 作成
-  - [x] scripts/check_slack_api.py 作成
   - [x] .env, env.example に SLACK_WORKSPACE_ID, SLACK_CHANNEL_ID を追加
   - [x] コマンドライン引数・環境変数の優先順位対応
   - [x] Slack API から最新メッセージ1件取得・表示
@@ -63,6 +62,7 @@
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
   - [x] 設定の簡素化完了
+  - [x] **重複機能の統合**: check_slack_api.pyを削除（get_workspace_id.pyで代替）
 
 ## 現在の状況 📊
 
@@ -88,7 +88,6 @@
   - 検索機能: 正常動作（"meetup"で60件、"general"で1件）
   - JSON形式出力: 正常動作
   - テーブル形式出力: 正常動作
-- **Slack API接続確認**: 正常動作確認済み
 
 ### プロジェクト構造
 ```
@@ -114,7 +113,6 @@ slack_posts_dumper/
 │       ├── __init__.py          ✅
 │       └── settings.py          ✅
 ├── scripts/                     ✅
-│   ├── check_slack_api.py       ✅
 │   ├── get_workspace_id.py      ✅
 │   └── get_channels.py          ✅
 └── (今後: templates/, static/, 実装ファイル)
@@ -178,7 +176,7 @@ slack_posts_dumper/
   - Cursor Editor用ルール作成
   - Git管理設定完了
 - **Slack API接続確認プログラム実装・動作確認**
-  - src/slack_checker.py, src/config/settings.py, scripts/check_slack_api.py 作成
+  - src/slack_checker.py, src/config/settings.py 作成
   - Slack API から最新メッセージ取得・表示
   - コマンドライン引数・環境変数の優先順位対応
 - **Workspace ID取得ツール実装・動作確認**
@@ -199,6 +197,10 @@ slack_posts_dumper/
   - エラーハンドリング・詳細ログ出力機能
   - 実際のワークスペースで72件のチャネル取得成功
   - 検索機能・JSON形式出力の動作確認完了
+- **重複機能の統合・プロジェクト最適化**
+  - check_slack_api.pyを削除（get_workspace_id.pyで代替）
+  - 各種.mdファイルの更新
+  - プロジェクト構造の簡素化完了
 
 ---
 

@@ -69,7 +69,6 @@ slack_posts_dumper/
 │       ├── __init__.py
 │       └── settings.py
 ├── scripts/
-│   ├── check_slack_api.py    # Slack API接続確認用スクリプト
 │   ├── get_workspace_id.py   # Workspace ID取得用スクリプト
 │   └── get_channels.py       # チャネル一覧取得用スクリプト
 ├── templates/
@@ -105,6 +104,7 @@ slack_posts_dumper/
 - **プロジェクト簡素化**
   - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - 設定の最適化・セキュリティ向上
+  - **重複機能の統合**: check_slack_api.pyを削除（get_workspace_id.pyで代替）
 
 ### Phase 1: 基本機能実装
 - **Channel ID取得ツールの実装** ✅
@@ -149,7 +149,6 @@ slack_posts_dumper/
 1. **環境復元**: `poetry install --no-root`
 2. **動作確認**: `poetry run python scripts/get_channels.py --verbose`
 3. **Workspace確認**: `poetry run python scripts/get_workspace_id.py`
-4. **API接続確認**: `poetry run python scripts/check_slack_api.py`
 
 ### 次の実装予定
 - templates/ディレクトリ作成
