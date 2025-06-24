@@ -121,4 +121,7 @@ config/local_settings.py
 *.log
 
 # direnv
-.envrc.local 
+.envrc.local
+
+# Poetry
+dist/ 

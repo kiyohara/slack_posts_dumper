@@ -18,7 +18,7 @@
 - Cursor Editor
 - Git によるバージョン管理
 - Python 3.13.1 (pyenv管理)
-- 仮想環境 (venv)
+- Poetry (依存関係管理)
 - direnv (環境変数管理)
 
 ## セットアップ
@@ -26,6 +26,7 @@
 ### 前提条件
 - pyenv がインストールされていること
 - Python 3.13.1 が pyenv で利用可能であること
+- Poetry がインストールされていること
 - direnv がインストールされていること
 
 ### 環境構築手順
@@ -34,9 +35,6 @@
    ```bash
    # プロジェクトディレクトリでPython 3.13.1を設定
    pyenv local 3.13.1
-   
-   # 仮想環境を作成
-   python -m venv venv
    ```
 
 2. **direnvの設定**
@@ -45,11 +43,11 @@
    direnv allow
    ```
    
-   ※ プロジェクトディレクトリに入ると自動的に仮想環境が有効化されます
+   ※ プロジェクトディレクトリに入ると自動的にPoetry仮想環境が有効化されます
 
 3. **依存関係のインストール**
    ```bash
-   pip install -r requirements.txt
+   poetry install
    ```
 
 4. **環境変数の設定**
@@ -70,7 +68,7 @@
 ### 環境変数管理
 このプロジェクトでは `direnv` を使用して環境変数を管理しています：
 
-- **自動仮想環境有効化**: プロジェクトディレクトリに入ると自動的に仮想環境が有効化されます
+- **自動仮想環境有効化**: プロジェクトディレクトリに入ると自動的にPoetry仮想環境が有効化されます
 - **環境変数の読み込み**: `.env` ファイルから環境変数が自動的に読み込まれます
 - **プロジェクト固有の環境変数**: `.envrc` ファイルで設定された環境変数が自動的に設定されます
 
@@ -87,22 +85,35 @@ LOG_LEVEL=INFO
 DEBUG=False
 ```
 
-### 仮想環境の手動操作
+### Poetryコマンド
 ```bash
-# 仮想環境の有効化（direnvが無効な場合）
-source venv/bin/activate
+# 依存関係のインストール
+poetry install
 
-# 仮想環境の無効化
-deactivate
+# 新しい依存関係の追加
+poetry add パッケージ名
+
+# 開発用依存関係の追加
+poetry add --group dev パッケージ名
+
+# 仮想環境内でコマンド実行
+poetry run python script.py
+
+# 仮想環境に入る
+poetry shell
+
+# 仮想環境から出る
+exit
 ```
 
-### 依存関係の更新
+### 開発用ツール
 ```bash
-pip install -r requirements.txt --upgrade
-```
+# コードフォーマット
+poetry run black .
 
-### 新しい依存関係の追加
-```bash
-pip install パッケージ名
-pip freeze > requirements.txt
+# リンター
+poetry run flake8 .
+
+# テスト実行
+poetry run pytest
 ``` 

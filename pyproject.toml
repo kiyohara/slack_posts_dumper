@@ -1,0 +1,27 @@
+[project]
+name = "slack-posts-dumper"
+version = "0.1.0"
+description = "Slackチャネルの投稿をHTMLとして保存するツール"
+authors = [
+    {name = "Tomokazu Kiyohara",email = "tomokazu.kiyohara@gmail.com"}
+]
+readme = "README.md"
+requires-python = "^3.13"
+dependencies = [
+    "slack-sdk (>=3.35.0,<4.0.0)",
+    "jinja2 (>=3.1.6,<4.0.0)",
+    "python-dotenv (>=1.1.0,<2.0.0)",
+    "python-dateutil (>=2.9.0.post0,<3.0.0)",
+    "requests (>=2.32.4,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+black = "^25.1.0"
+flake8 = "^7.3.0"
+
