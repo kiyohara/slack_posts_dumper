@@ -38,13 +38,15 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - **HTML生成**: Jinja2 テンプレートエンジン
 - **CSS**: カスタムCSS（Slack風デザイン）
 - **JavaScript**: インタラクティブ機能用
+- **依存管理**: Poetry（`pyproject.toml`/`poetry.lock`）
 
 ## ファイル構成（予定）
 ```
 slack_posts_dumper/
 ├── README.md
 ├── PROJECT_SPEC.md
-├── requirements.txt
+├── pyproject.toml
+├── poetry.lock
 ├── config/
 │   └── settings.py
 ├── src/
