@@ -125,6 +125,14 @@ SLACK_WORKSPACE_ID=T1234567890
 - User Token（xoxp-で始まる）では動作しません
 - Bot Tokenの取得方法は「Slack APIトークンの取得」セクションを参照してください
 
+#### 現在の設定状況
+- ✅ **Bot Token**: 設定済み
+- ✅ **Workspace ID**: T02A6KL7S（kanazawa.rb）
+- ⏳ **Channel ID**: 未設定（次回設定予定）
+
+#### 次のステップ
+Workspace ID取得後は、Channel ID取得ツールを使用してチャネルIDを設定してください。
+
 #### オプショナル: ブラウザでの手動取得方法
 
 User Tokenがない場合や、スクリプトが使用できない環境では、ブラウザを使って手動でWorkspace IDを取得することもできます。

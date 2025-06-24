@@ -52,6 +52,10 @@
   - [x] Bot Tokenを使用したWorkspace ID自動取得
   - [x] auth.test APIによるWorkspace情報取得
   - [x] 動作確認・.envファイル自動更新
+- [x] プロジェクト簡素化
+  - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
+  - [x] env.example, README.md, 開発ガイドライン更新
+  - [x] 設定の簡素化完了
 
 ## 現在の状況 📊
 
@@ -61,6 +65,12 @@
 - **環境変数**: direnv + .env ✅
 - **仮想環境**: Poetry仮想環境（自動有効化） ✅
 - **開発ツール**: Black, flake8, pytest ✅
+
+### 設定状況
+- **SLACK_BOT_TOKEN**: 設定済み ✅
+- **SLACK_WORKSPACE_ID**: T02A6KL7S（kanazawa.rb）✅
+- **SLACK_CHANNEL_ID**: 未設定（次回設定予定）
+- **SLACK_USER_TOKEN**: 削除済み（不要）✅
 
 ### プロジェクト構造
 ```
@@ -94,6 +104,10 @@ slack_posts_dumper/
 ## 次のステップ 🎯
 
 ### Phase 1: 基本機能実装（次の優先タスク）
+- [ ] Channel ID取得ツール実装
+  - [ ] scripts/get_channel_id.py 作成
+  - [ ] ワークスペース内のチャネル一覧取得
+  - [ ] チャネル名からChannel ID検索機能
 - [ ] templates/ディレクトリ作成
 - [ ] static/ディレクトリ作成
 - [ ] Slack API連携本体（slack_client.py）
@@ -141,6 +155,11 @@ slack_posts_dumper/
   - Bot Tokenを使用したWorkspace ID自動取得機能
   - auth.test APIによるWorkspace情報取得
   - 実際のWorkspace ID取得・動作確認完了
+- **プロジェクト簡素化・設定最適化**
+  - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
+  - env.example, README.md, 開発ガイドライン更新
+  - 実際のWorkspace ID（T02A6KL7S）設定完了
+  - 設定の簡素化・セキュリティ向上
 
 ---
 
