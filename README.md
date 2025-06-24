@@ -106,32 +106,24 @@ python scripts/get_workspace_id.py --verbose
 #### 出力例
 ```
 === Workspace情報 ===
-Team ID: T1234567890
-Team Name: My Workspace
-Team Domain: myworkspace
-User ID: U1234567890
+Team ID: T0000000001
+Team Name: Example Workspace
+Team Domain: example-workspace
+User ID: U0000000001
 User Name: slack_bot
-URL: https://myworkspace.slack.com/
+URL: https://example-workspace.slack.com/
 ===================
 
-✅ Workspace ID: T1234567890
+✅ Workspace ID: T0000000001
 
 このTeam IDを.envファイルのSLACK_WORKSPACE_IDに設定してください:
-SLACK_WORKSPACE_ID=T1234567890
+SLACK_WORKSPACE_ID=T0000000001
 ```
 
 #### 注意事項
 - Bot Token（xoxb-で始まる）が必要です
 - User Token（xoxp-で始まる）では動作しません
 - Bot Tokenの取得方法は「Slack APIトークンの取得」セクションを参照してください
-
-#### 現在の設定状況
-- ✅ **Bot Token**: 設定済み
-- ✅ **Workspace ID**: T02A6KL7S（kanazawa.rb）
-- ⏳ **Channel ID**: 未設定（次回設定予定）
-
-#### 次のステップ
-Workspace ID取得後は、Channel ID取得ツールを使用してチャネルIDを設定してください。
 
 #### オプショナル: ブラウザでの手動取得方法
 
@@ -180,6 +172,83 @@ User Tokenがない場合や、スクリプトが使用できない環境では�
 - 推奨は「Workspace ID取得ツール」を使用することです
 - 手動取得したIDは、必ず `T` で始まることを確認してください
 
+### チャネル一覧取得ツール
+
+Slackワークスペース内のチャネル一覧を取得し、チャネルIDを簡単に見つけるためのツールが用意されています。
+
+#### 実行例
+```bash
+# 環境変数からBot Tokenを取得してチャネル一覧を表示
+python scripts/get_channels.py
+
+# 引数でBot Tokenを指定
+python scripts/get_channels.py --bot-token xoxb-your-bot-token
+
+# 詳細ログ出力
+python scripts/get_channels.py --verbose
+
+# JSON形式で出力
+python scripts/get_channels.py --format json
+
+# チャネル名で検索
+python scripts/get_channels.py --search "general"
+```
+
+#### オプション
+- `--bot-token` : Slack Bot Token（引数があれば優先、なければ環境変数SLACK_BOT_TOKEN）
+- `--verbose, -v` : 詳細ログ出力
+- `--format` : 出力形式（`table` または `json`、デフォルト: `table`）
+- `--search` : チャネル名で検索（部分一致）
+
+#### 出力例（テーブル形式）
+```
+チャネル名                チャネルID          メンバー数      説明                            
+--------------------------------------------------------------------------------
+general              C0000000001       100        This channel is for team-wide 
+random               C0000000002       100        A place for non-work banter              
+github               C0000000003       16         GitHub integration channel
+twitter              C0000000004       0          Twitter feed updates
+
+✅ 取得完了: 72件のチャネル
+
+チャネルIDを使用する際は、以下の形式で.envファイルに設定してください:
+SLACK_CHANNEL_ID=C0000000001
+```
+
+#### 出力例（JSON形式）
+```json
+[
+  {
+    "name": "general",
+    "id": "C0000000001",
+    "num_members": 100,
+    "purpose": "This channel is for team-wide communication",
+    "topic": "",
+    "is_private": false,
+    "is_archived": false
+  }
+]
+```
+
+#### 検索機能
+チャネル名での部分一致検索が可能です：
+```bash
+# "meetup"を含むチャネルを検索
+python scripts/get_channels.py --search "meetup"
+
+# "general"チャネルを検索
+python scripts/get_channels.py --search "general"
+
+# "project"を含むチャネルを検索
+python scripts/get_channels.py --search "project"
+```
+
+#### 注意事項
+- Bot Token（xoxb-で始まる）が必要です
+- `channels:read`権限が必要です
+- パブリックチャネルのみが取得されます
+- 最大1000件までのチャネルを取得できます
+
 ### Slack API接続確認プログラム
 
 Slack APIとの接続や環境変数の設定が正しいかを確認するためのチェックプログラムが用意されています。
@@ -190,7 +259,7 @@ Slack APIとの接続や環境変数の設定が正しいかを確認するた�
 python scripts/check_slack_api.py
 
 # コマンドライン引数で上書き
-python scripts/check_slack_api.py --workspace-id T9876543210 --channel-id C9876543210
+python scripts/check_slack_api.py --workspace-id T0000000001 --channel-id C0000000001
 
 # 詳細ログ出力
 python scripts/check_slack_api.py --verbose
@@ -209,8 +278,8 @@ python scripts/check_slack_api.py --verbose
 ### .env 設定例
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
-SLACK_WORKSPACE_ID=T1234567890
-SLACK_CHANNEL_ID=C1234567890
+SLACK_WORKSPACE_ID=T0000000001
+SLACK_CHANNEL_ID=C0000000001
 OUTPUT_DIR=output
 LOG_LEVEL=INFO
 DEBUG=False

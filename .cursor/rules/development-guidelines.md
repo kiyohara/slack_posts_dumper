@@ -36,6 +36,50 @@ poetry run pytest
 poetry run python script.py
 ```
 
+## 実装済みスクリプト
+
+### Slack API接続確認
+```bash
+# 基本的な接続確認
+poetry run python scripts/check_slack_api.py
+
+# 詳細ログ出力
+poetry run python scripts/check_slack_api.py --verbose
+
+# 引数で設定を上書き
+poetry run python scripts/check_slack_api.py --workspace-id T1234567890 --channel-id C1234567890
+```
+
+### Workspace ID取得
+```bash
+# 環境変数からBot Tokenを取得
+poetry run python scripts/get_workspace_id.py
+
+# 引数でBot Tokenを指定
+poetry run python scripts/get_workspace_id.py --bot-token xoxb-your-token
+
+# 詳細ログ出力
+poetry run python scripts/get_workspace_id.py --verbose
+```
+
+### チャネル一覧取得
+```bash
+# 基本的なチャネル一覧表示
+poetry run python scripts/get_channels.py
+
+# 詳細ログ出力
+poetry run python scripts/get_channels.py --verbose
+
+# JSON形式で出力
+poetry run python scripts/get_channels.py --format json
+
+# チャネル名で検索
+poetry run python scripts/get_channels.py --search "general"
+
+# 引数でBot Tokenを指定
+poetry run python scripts/get_channels.py --bot-token xoxb-your-token
+```
+
 ## ファイル構成
 ```
 slack_posts_dumper/
@@ -67,11 +111,18 @@ slack_posts_dumper/
 - **一貫性を保つ**: 同じドキュメント内では同じ例示用の値を使用する
 
 ### 例示用の値
-- **Workspace ID**: `T1234567890`
-- **Channel ID**: `C1234567890`
-- **User ID**: `U1234567890`
-- **Workspace Name**: `My Workspace`
+- **Workspace ID**: `T0000000001`
+- **Channel ID**: `C0000000001`
+- **User ID**: `U0000000001`
+- **Workspace Name**: `Example Workspace`
 - **Channel Name**: `general`
 - **User Name**: `slack_bot`
-- **Domain**: `myworkspace`
-- **URL**: `https://myworkspace.slack.com/` 
+- **Domain**: `example-workspace`
+- **URL**: `https://example-workspace.slack.com/`
+
+### ID判例のルール
+- **Workspace ID**: `T0000000001` 形式（T + 10桁の0）
+- **Channel ID**: `C0000000001` 形式（C + 10桁の0）
+- **User ID**: `U0000000001` 形式（U + 10桁の0）
+- **理由**: 実在するIDと明確に区別するため、連続した0を使用
+- **注意**: 実際のSlack IDは英数字の組み合わせなので、0000000000は明らかに例示用 

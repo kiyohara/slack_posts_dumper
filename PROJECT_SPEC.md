@@ -70,7 +70,8 @@ slack_posts_dumper/
 │       └── settings.py
 ├── scripts/
 │   ├── check_slack_api.py    # Slack API接続確認用スクリプト
-│   └── get_workspace_id.py   # Workspace ID取得用スクリプト
+│   ├── get_workspace_id.py   # Workspace ID取得用スクリプト
+│   └── get_channels.py       # チャネル一覧取得用スクリプト
 ├── templates/
 │   ├── base.html
 │   └── channel.html
@@ -95,14 +96,20 @@ slack_posts_dumper/
   - Bot Tokenを使用したWorkspace ID自動取得
   - auth.test APIによるWorkspace情報取得
   - 動作確認・.envファイル自動更新
+- **チャネル一覧取得ツールの実装**
+  - conversations.list APIによるチャネル一覧取得
+  - テーブル形式・JSON形式での出力対応
+  - チャネル名での検索機能
+  - エラーハンドリング・詳細ログ出力
+  - 動作確認（72件のチャネル取得成功）
 - **プロジェクト簡素化**
   - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - 設定の最適化・セキュリティ向上
 
 ### Phase 1: 基本機能実装
-- **Channel ID取得ツールの実装**
-  - ワークスペース内のチャネル一覧取得
-  - チャネル名からChannel ID検索機能
+- **Channel ID取得ツールの実装** ✅
+  - ワークスペース内のチャネル一覧取得 ✅
+  - チャネル名からChannel ID検索機能 ✅
 - Slack API連携本体
 - チャネル履歴取得
 - 基本的なHTML出力

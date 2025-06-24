@@ -52,6 +52,13 @@
   - [x] Bot Tokenを使用したWorkspace ID自動取得
   - [x] auth.test APIによるWorkspace情報取得
   - [x] 動作確認・.envファイル自動更新
+- [x] チャネル一覧取得ツール実装
+  - [x] scripts/get_channels.py 作成
+  - [x] conversations.list APIによるチャネル一覧取得
+  - [x] テーブル形式・JSON形式での出力対応
+  - [x] チャネル名での検索機能
+  - [x] エラーハンドリング・詳細ログ出力
+  - [x] 動作確認（72件のチャネル取得成功）
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
@@ -104,10 +111,10 @@ slack_posts_dumper/
 ## 次のステップ 🎯
 
 ### Phase 1: 基本機能実装（次の優先タスク）
-- [ ] Channel ID取得ツール実装
-  - [ ] scripts/get_channel_id.py 作成
-  - [ ] ワークスペース内のチャネル一覧取得
-  - [ ] チャネル名からChannel ID検索機能
+- [x] Channel ID取得ツール実装
+  - [x] scripts/get_channels.py 作成
+  - [x] ワークスペース内のチャネル一覧取得
+  - [x] チャネル名からChannel ID検索機能
 - [ ] templates/ディレクトリ作成
 - [ ] static/ディレクトリ作成
 - [ ] Slack API連携本体（slack_client.py）
@@ -160,6 +167,14 @@ slack_posts_dumper/
   - env.example, README.md, 開発ガイドライン更新
   - 実際のWorkspace ID（T02A6KL7S）設定完了
   - 設定の簡素化・セキュリティ向上
+- **チャネル一覧取得ツール実装・動作確認**
+  - scripts/get_channels.py 作成
+  - conversations.list APIによるチャネル一覧取得機能
+  - テーブル形式・JSON形式での出力対応
+  - チャネル名での検索機能実装
+  - エラーハンドリング・詳細ログ出力機能
+  - 実際のワークスペースで72件のチャネル取得成功
+  - 検索機能・JSON形式出力の動作確認完了
 
 ---
 

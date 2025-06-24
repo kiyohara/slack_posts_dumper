@@ -1,5 +1,32 @@
 # 実装時の注意事項
 
+## 実装済み機能
+
+### Slack API接続確認（最小構成）
+- ✅ `src/slack_checker.py`: Slack API接続確認プログラム
+- ✅ `scripts/check_slack_api.py`: 接続確認用スクリプト
+- ✅ コマンドライン引数・環境変数の優先順位対応
+- ✅ 最新メッセージ1件取得・表示機能
+
+### Workspace ID取得ツール
+- ✅ `scripts/get_workspace_id.py`: Workspace ID取得ツール
+- ✅ Bot Tokenを使用したWorkspace ID自動取得
+- ✅ auth.test APIによるWorkspace情報取得
+- ✅ 詳細ログ出力・エラーハンドリング
+
+### チャネル一覧取得ツール
+- ✅ `scripts/get_channels.py`: チャネル一覧取得ツール
+- ✅ conversations.list APIによるチャネル一覧取得
+- ✅ テーブル形式・JSON形式での出力対応
+- ✅ チャネル名での検索機能（部分一致）
+- ✅ エラーハンドリング・詳細ログ出力
+- ✅ 最大1000件までのチャネル取得対応
+
+### 設定管理
+- ✅ `src/config/settings.py`: 設定管理モジュール
+- ✅ Bot Token、Workspace ID、Channel IDの取得・検証機能
+- ✅ 環境変数・コマンドライン引数の優先順位処理
+
 ## Slack API関連
 - **必要な権限**:
   - `channels:history` - チャネルの履歴を読み取り
