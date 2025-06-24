@@ -4,7 +4,7 @@
 **プロジェクト名**: Slack Posts Dumper  
 **目的**: Slackチャネルの投稿をHTMLとして保存するツール  
 **開始日**: 2024年12月  
-**現在のフェーズ**: 環境構築・プロジェクト基盤整備完了
+**現在のフェーズ**: 基本機能実装開始
 
 ## 完了済みタスク ✅
 
@@ -35,6 +35,19 @@
   - [x] .cursor/rules/implementation-notes.md
   - [x] .cursor/rules/ai-assistant-rules.md
 
+### 基本機能（最小構成）
+- [x] src/ ディレクトリ作成
+- [x] config/ ディレクトリ作成
+- [x] scripts/ ディレクトリ作成
+- [x] Slack API接続確認用プログラム実装
+  - [x] src/slack_checker.py 作成
+  - [x] src/config/settings.py 作成
+  - [x] scripts/check_slack_api.py 作成
+  - [x] .env, env.example に SLACK_WORKSPACE_ID, SLACK_CHANNEL_ID を追加
+  - [x] コマンドライン引数・環境変数の優先順位対応
+  - [x] Slack API から最新メッセージ1件取得・表示
+  - [x] 動作確認
+
 ## 現在の状況 📊
 
 ### 開発環境
@@ -61,29 +74,25 @@ slack_posts_dumper/
 │   ├── development-guidelines.md ✅
 │   ├── implementation-notes.md  ✅
 │   └── ai-assistant-rules.md    ✅
-└── (実装ファイルは未作成)
+├── src/                         ✅
+│   ├── __init__.py              ✅
+│   ├── slack_checker.py         ✅
+│   └── config/                  ✅
+│       ├── __init__.py          ✅
+│       └── settings.py          ✅
+├── scripts/                     ✅
+│   └── check_slack_api.py       ✅
+└── (今後: templates/, static/, 実装ファイル)
 ```
 
 ## 次のステップ 🎯
 
 ### Phase 1: 基本機能実装（次の優先タスク）
-- [ ] ソースコードディレクトリ構造作成
-  - [ ] src/ディレクトリ作成
-  - [ ] config/ディレクトリ作成
-  - [ ] templates/ディレクトリ作成
-  - [ ] static/ディレクトリ作成
-- [ ] Slack API連携実装
-  - [ ] slack_client.py作成
-  - [ ] API認証・接続機能
-  - [ ] チャネル履歴取得機能
-- [ ] データ処理実装
-  - [ ] data_processor.py作成
-  - [ ] メッセージデータ処理
-  - [ ] ユーザー情報取得
-- [ ] 基本HTML出力実装
-  - [ ] html_generator.py作成
-  - [ ] Jinja2テンプレート作成
-  - [ ] 基本的なHTML生成
+- [ ] templates/ディレクトリ作成
+- [ ] static/ディレクトリ作成
+- [ ] Slack API連携本体（slack_client.py）
+- [ ] データ処理（data_processor.py）
+- [ ] HTML出力（html_generator.py, Jinja2テンプレート）
 
 ### Phase 2: UI/UX改善（後回し）
 - [ ] Slack風デザイン実装
@@ -117,8 +126,12 @@ slack_posts_dumper/
   - プロジェクト文書化
   - Cursor Editor用ルール作成
   - Git管理設定完了
+- **Slack API接続確認プログラム実装・動作確認**
+  - src/slack_checker.py, src/config/settings.py, scripts/check_slack_api.py 作成
+  - Slack API から最新メッセージ取得・表示
+  - コマンドライン引数・環境変数の優先順位対応
 
 ---
 
 **最終更新**: 2024年12月  
-**次のマイルストーン**: Phase 1基本機能実装開始 
+**次のマイルストーン**: Phase 1基本機能実装（HTML出力・データ処理） 

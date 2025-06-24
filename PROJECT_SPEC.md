@@ -5,6 +5,12 @@ Slackチャネルの投稿をHTML形式で保存するツール
 
 ## 機能要件
 
+### 0. Slack API接続確認（最小構成）
+- Slack APIトークン・チャネルID等の設定確認
+- Slack APIから最新メッセージ1件を取得し、接続・認証・権限の動作確認
+- コマンドライン引数と環境変数の優先順位対応
+- エラー時は詳細なメッセージを出力
+
 ### 1. Slack API連携
 - Slack Web APIを使用
 - 必要な権限：
@@ -40,7 +46,7 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - **JavaScript**: インタラクティブ機能用
 - **依存管理**: Poetry（`pyproject.toml`/`poetry.lock`）
 
-## ファイル構成（予定）
+## ファイル構成（予定・一部実装済み）
 ```
 slack_posts_dumper/
 ├── README.md
@@ -51,10 +57,15 @@ slack_posts_dumper/
 │   └── settings.py
 ├── src/
 │   ├── __init__.py
-│   ├── slack_client.py
-│   ├── html_generator.py
-│   ├── data_processor.py
-│   └── main.py
+│   ├── slack_checker.py      # Slack API接続確認（最小構成）
+│   ├── slack_client.py       # 本体（今後実装）
+│   ├── html_generator.py     # 本体（今後実装）
+│   ├── data_processor.py     # 本体（今後実装）
+│   └── config/
+│       ├── __init__.py
+│       └── settings.py
+├── scripts/
+│   └── check_slack_api.py    # Slack API接続確認用スクリプト
 ├── templates/
 │   ├── base.html
 │   └── channel.html
@@ -63,14 +74,21 @@ slack_posts_dumper/
 │   │   └── slack-style.css
 │   └── js/
 │       └── main.js
-└── output/
-    └── (生成されたHTMLファイル)
+├── output/
+│   └── （生成されたHTMLファイル）
+└── env.example
 ```
 
 ## 実装フェーズ
 
+### Phase 0: Slack API接続確認（最小構成）
+- Slack API接続確認プログラムの実装
+- コマンドライン引数・環境変数の優先順位対応
+- 最新メッセージ1件取得・表示
+- 動作確認
+
 ### Phase 1: 基本機能
-- Slack API接続
+- Slack API接続本体
 - チャネル履歴取得
 - 基本的なHTML出力
 

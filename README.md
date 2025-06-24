@@ -33,16 +33,13 @@
 
 1. **Python環境の設定**
    ```bash
-   # プロジェクトディレクトリでPython 3.13.1を設定
    pyenv local 3.13.1
    ```
 
 2. **direnvの設定**
    ```bash
-   # direnvを有効化（初回のみ）
    direnv allow
    ```
-   
    ※ プロジェクトディレクトリに入ると自動的にPoetry仮想環境が有効化されます
 
 3. **依存関係のインストール**
@@ -52,68 +49,75 @@
 
 4. **環境変数の設定**
    ```bash
-   # 環境変数サンプルファイルをコピー
    cp env.example .env
-   
-   # .envファイルを編集してSlack APIトークンを設定
+   # .envファイルを編集してSlack APIトークンやチャネルID等を設定
    # SLACK_BOT_TOKEN=xoxb-your-bot-token-here
    # SLACK_USER_TOKEN=xoxp-your-user-token-here
+   # SLACK_WORKSPACE_ID=T1234567890
+   # SLACK_CHANNEL_ID=C1234567890
    ```
 
-## 使用方法
-（開発中）
+## 使い方
 
-## 開発者向け情報
+### Slack API接続確認プログラム
 
-### 環境変数管理
-このプロジェクトでは `direnv` を使用して環境変数を管理しています：
+Slack APIとの接続や環境変数の設定が正しいかを確認するためのチェックプログラムが用意されています。
 
-- **自動仮想環境有効化**: プロジェクトディレクトリに入ると自動的にPoetry仮想環境が有効化されます
-- **環境変数の読み込み**: `.env` ファイルから環境変数が自動的に読み込まれます
-- **プロジェクト固有の環境変数**: `.envrc` ファイルで設定された環境変数が自動的に設定されます
-
-### 環境変数の設定
+#### 実行例
 ```bash
-# .envファイルを編集
-vim .env
+# 環境変数の値を利用
+python scripts/check_slack_api.py
 
-# 主な設定項目
+# コマンドライン引数で上書き
+python scripts/check_slack_api.py --workspace-id T9876543210 --channel-id C9876543210
+
+# 詳細ログ出力
+python scripts/check_slack_api.py --verbose
+```
+
+#### オプション
+- `--workspace-id` : ワークスペースID（引数があれば優先、なければ環境変数SLACK_WORKSPACE_ID）
+- `--channel-id`   : チャネルID（引数があれば優先、なければ環境変数SLACK_CHANNEL_ID）
+- `--verbose, -v`  : 詳細ログ出力
+
+#### 出力例
+- Slack API接続の成否
+- 取得した最新メッセージの内容（タイムスタンプ、ユーザー、本文）
+- エラー時はエラーメッセージ
+
+### .env 設定例
+```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
 SLACK_USER_TOKEN=xoxp-your-user-token-here
+SLACK_WORKSPACE_ID=T1234567890
+SLACK_CHANNEL_ID=C1234567890
 OUTPUT_DIR=output
 LOG_LEVEL=INFO
 DEBUG=False
 ```
 
+## 開発者向け情報
+
+### 環境変数管理
+このプロジェクトでは `direnv` を使って環境変数を管理しています：
+
+- **自動仮想環境有効化**: プロジェクトディレクトリに入ると自動的にPoetry仮想環境が有効化されます
+- **環境変数の読み込み**: `.env` ファイルから環境変数が自動的に読み込まれます
+- **プロジェクト固有の環境変数**: `.envrc` ファイルで設定された環境変数が自動的に設定されます
+
 ### Poetryコマンド
 ```bash
-# 依存関係のインストール
 poetry install
-
-# 新しい依存関係の追加
 poetry add パッケージ名
-
-# 開発用依存関係の追加
 poetry add --group dev パッケージ名
-
-# 仮想環境内でコマンド実行
 poetry run python script.py
-
-# 仮想環境に入る
 poetry shell
-
-# 仮想環境から出る
 exit
 ```
 
 ### 開発用ツール
 ```bash
-# コードフォーマット
 poetry run black .
-
-# リンター
 poetry run flake8 .
-
-# テスト実行
 poetry run pytest
 ``` 
