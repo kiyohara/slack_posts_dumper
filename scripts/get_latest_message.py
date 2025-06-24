@@ -125,7 +125,42 @@ def get_latest_message(
         if not messages:
             return None
         
-        return messages[0]
+        message = messages[0]
+        
+        # ユーザー情報を取得
+        user_id = message.get("user")
+        if user_id and user_id != "USLACKBOT":
+            try:
+                if verbose:
+                    print(f"users.info APIを呼び出し中... (ユーザー: {user_id})")
+                
+                user_response = client.users_info(user=user_id)
+                if user_response["ok"]:
+                    user_info = user_response.get("user", {})
+                    # 表示名を優先、なければユーザー名を使用
+                    display_name = user_info.get("profile", {}).get("display_name")
+                    real_name = user_info.get("profile", {}).get("real_name")
+                    username = user_info.get("name")
+                    
+                    if display_name:
+                        message["username"] = display_name
+                    elif real_name:
+                        message["username"] = real_name
+                    elif username:
+                        message["username"] = username
+                    else:
+                        message["username"] = "Unknown"
+                else:
+                    message["username"] = "Unknown"
+            except Exception as e:
+                if verbose:
+                    print(f"ユーザー情報の取得に失敗: {e}")
+                message["username"] = "Unknown"
+        else:
+            # Botメッセージやシステムメッセージの場合
+            message["username"] = message.get("username", "Bot")
+        
+        return message
         
     except SlackApiError as e:
         error_code = e.response.get("error", "unknown_error")
