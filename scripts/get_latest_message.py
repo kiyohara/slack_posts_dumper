@@ -23,6 +23,7 @@ from src.config.settings import (
     validate_workspace_id_format
 )
 from src.utils.user_resolver import create_user_resolver
+from src.message_renderer import SlackMessageHtmlRenderer
 
 
 def parse_arguments():
@@ -72,7 +73,7 @@ def parse_arguments():
     
     parser.add_argument(
         '--format',
-        choices=['human', 'json'],
+        choices=['human', 'json', 'html'],
         default='human',
         help='出力形式（デフォルト: human）'
     )
@@ -140,6 +141,8 @@ def get_latest_message(
                 
                 # UserResolverを使用してユーザー情報を取得
                 user_info = user_resolver.get_user_info(user_id)
+                if user_info is None:
+                    user_info = {}
                 if user_info:
                     message["username"] = user_info.get("display_name", "Unknown")
                 else:
@@ -246,8 +249,8 @@ def main():
     """メイン関数"""
     args = parse_arguments()
     
-    # JSONフォーマットの場合はツール名などの出力を抑止
-    if args.format != 'json':
+    # JSON/HTMLフォーマットの場合はツール名などの出力を抑止
+    if args.format not in ('json', 'html'):
         print("=== Slack 最新メッセージ取得ツール ===")
         print()
     
@@ -257,8 +260,8 @@ def main():
         workspace_id = get_workspace_id(args.workspace_id)
         channel_id = get_channel_id(args.channel_id)
         
-        # JSONフォーマットの場合は詳細ログも抑止
-        if args.verbose and args.format != 'json':
+        # JSON/HTMLフォーマットの場合は詳細ログも抑止
+        if args.verbose and args.format not in ('json', 'html'):
             print(f"Bot Token: {bot_token[:10]}...")
             print(f"Workspace ID: {workspace_id}")
             print(f"Channel ID: {channel_id}")
@@ -271,6 +274,8 @@ def main():
             if args.format == 'json':
                 # JSONフォーマットの場合は空のオブジェクトを出力
                 print("{}")
+            elif args.format == 'html':
+                print("<div>メッセージが見つかりませんでした。</div>")
             else:
                 print("メッセージが見つかりませんでした。")
             return
@@ -278,6 +283,13 @@ def main():
         # メッセージを表示
         if args.format == 'json':
             print(format_message_json(message))
+        elif args.format == 'html':
+            # ユーザー情報を取得
+            client = WebClient(token=bot_token)
+            user_resolver = create_user_resolver(client)
+            renderer = SlackMessageHtmlRenderer()
+            html = renderer.render(message, user_resolver)
+            print(html)
         else:
             print(format_message_human(message))
         

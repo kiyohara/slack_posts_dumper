@@ -144,6 +144,9 @@ slack_posts_dumper/
 
 ### Phase 2: UI/UX改善
 - Slack風デザイン
+  - メッセージ中の絵文字（アイコン）を適切に表示する機能
+  - 改行などのHTMLタグを適切に処理する機能
+  - URLリンクを適切に処理する機能
 - レスポンシブ対応
 - インタラクティブ機能
 
@@ -188,3 +191,8 @@ slack_posts_dumper/
 - Slack API連携本体（slack_client.py）
 - データ処理（data_processor.py）
 - HTML出力（html_generator.py, Jinja2テンプレート） 
+
+## 今後の残件・改善予定
+- メッセージ中の絵文字（アイコン）を適切に表示する機能
+- 改行などのHTMLタグを適切に処理する機能
+- URLリンクを適切に処理する機能 

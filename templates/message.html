@@ -1,0 +1,41 @@
+<div class="slack-message">
+  <div class="slack-message__avatar">
+    <img src="{{ user.profile.image_72 }}" alt="avatar" width="48" height="48" style="border-radius: 6px;">
+  </div>
+  <div class="slack-message__content">
+    <div class="slack-message__header">
+      <span class="slack-message__username">{{ user.display_name }}</span>
+      <span class="slack-message__timestamp">{{ message.ts | slack_time }}</span>
+    </div>
+    <div class="slack-message__body">
+      {{ message.text | e | nl2br }}
+    </div>
+    {# 今はリアクション・絵文字・添付ファイル等は未対応 #}
+  </div>
+</div>
+
+<style>
+.slack-message {
+  display: flex;
+  align-items: flex-start;
+  font-family: "Noto Sans JP", "Segoe UI", Arial, sans-serif;
+  margin-bottom: 24px;
+}
+.slack-message__avatar {
+  margin-right: 12px;
+}
+.slack-message__username {
+  font-weight: bold;
+  color: #1d1c1d;
+  margin-right: 8px;
+}
+.slack-message__timestamp {
+  color: #999;
+  font-size: 0.95em;
+}
+.slack-message__body {
+  margin-top: 2px;
+  white-space: pre-line;
+  font-size: 1.08em;
+}
+</style> 

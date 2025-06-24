@@ -76,6 +76,13 @@
   - [x] テストツール（scripts/test_user_resolver.py）の実装
   - [x] 既存スクリプト（get_latest_message.py）への統合
   - [x] README.md、PROJECT_SPEC.md、PROGRESS.mdの更新
+- [x] ユーザー投稿HTMLレンダラ（SlackMessageHtmlRenderer）実装
+  - [x] src/message_renderer.py 作成
+  - [x] Jinja2テンプレート（templates/message.html）作成
+  - [x] ユーザーのアバター・名前・投稿時刻・本文をSlack風にHTML化
+  - [x] フィルタ（slack_time, nl2br）で見やすさ調整
+  - [x] 添付画像の見た目を参考にデザイン
+  - [ ] 絵文字・リアクション・添付ファイル等は今後対応
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
@@ -187,6 +194,9 @@ slack_posts_dumper/
 
 ### Phase 2: UI/UX改善（後回し）
 - [ ] Slack風デザイン実装
+  - [ ] メッセージ中の絵文字（アイコン）を適切に表示する機能
+  - [ ] 改行などのHTMLタグを適切に処理する機能
+  - [ ] URLリンクを適切に処理する機能
 - [ ] レスポンシブ対応
 - [ ] インタラクティブ機能
 
@@ -261,6 +271,11 @@ slack_posts_dumper/
   - 既存スクリプト（get_latest_message.py）への統合
   - README.md、PROJECT_SPEC.md、PROGRESS.mdの更新
 - **プロジェクト簡素化**
+
+## 今後の残件・改善予定
+- メッセージ中の絵文字（アイコン）を適切に表示する機能
+- 改行などのHTMLタグを適切に処理する機能
+- URLリンクを適切に処理する機能
 
 ---
 
