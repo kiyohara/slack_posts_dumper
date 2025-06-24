@@ -186,14 +186,17 @@ def main():
     """メイン関数"""
     args = parse_arguments()
     
-    print("=== Slack チャネル一覧取得ツール ===")
-    print()
+    # JSONフォーマットの場合はツール名などの出力を抑止
+    if args.format != 'json':
+        print("=== Slack チャネル一覧取得ツール ===")
+        print()
     
     try:
         # Bot Tokenを取得
         bot_token = get_bot_token(args.bot_token)
         
-        if args.verbose:
+        # JSONフォーマットの場合は詳細ログも抑止
+        if args.verbose and args.format != 'json':
             print(f"Bot Token: {bot_token[:10]}...")
         
         # チャネル一覧を取得
@@ -202,7 +205,7 @@ def main():
         # 検索フィルタリング
         if args.search:
             channels = filter_channels_by_search(channels, args.search)
-            if args.verbose:
+            if args.verbose and args.format != 'json':
                 print(f"検索結果: '{args.search}' に一致するチャネル数: {len(channels)}")
         
         # 結果を表示
@@ -210,22 +213,33 @@ def main():
             print(format_channels_json(channels))
         else:
             print(format_channels_table(channels))
-        
-        print()
-        print(f"✅ 取得完了: {len(channels)}件のチャネル")
-        
-        if args.format == 'table' and channels:
             print()
-            print("チャネルIDを使用する際は、以下の形式で.envファイルに設定してください:")
-            print("SLACK_CHANNEL_ID=C1234567890")
+            print(f"✅ 取得完了: {len(channels)}件のチャネル")
+            
+            if channels:
+                print()
+                print("チャネルIDを使用する際は、以下の形式で.envファイルに設定してください:")
+                print("SLACK_CHANNEL_ID=C1234567890")
         
         return 0
         
     except ValueError as e:
-        print(f"❌ 設定エラー: {e}")
+        if args.format == 'json':
+            # JSONフォーマットの場合はエラーもJSON形式で出力
+            import json
+            error_response = {"error": "設定エラー", "message": str(e)}
+            print(json.dumps(error_response, ensure_ascii=False, indent=2))
+        else:
+            print(f"❌ 設定エラー: {e}")
         return 1
     except Exception as e:
-        print(f"❌ エラー: {e}")
+        if args.format == 'json':
+            # JSONフォーマットの場合はエラーもJSON形式で出力
+            import json
+            error_response = {"error": "実行エラー", "message": str(e)}
+            print(json.dumps(error_response, ensure_ascii=False, indent=2))
+        else:
+            print(f"❌ エラー: {e}")
         return 1
 
 

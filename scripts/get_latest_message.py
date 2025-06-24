@@ -219,8 +219,10 @@ def main():
     """メイン関数"""
     args = parse_arguments()
     
-    print("=== Slack 最新メッセージ取得ツール ===")
-    print()
+    # JSONフォーマットの場合はツール名などの出力を抑止
+    if args.format != 'json':
+        print("=== Slack 最新メッセージ取得ツール ===")
+        print()
     
     try:
         # 設定値を取得
@@ -228,7 +230,8 @@ def main():
         workspace_id = get_workspace_id(args.workspace_id)
         channel_id = get_channel_id(args.channel_id)
         
-        if args.verbose:
+        # JSONフォーマットの場合は詳細ログも抑止
+        if args.verbose and args.format != 'json':
             print(f"Bot Token: {bot_token[:10]}...")
             print(f"Workspace ID: {workspace_id}")
             print(f"Channel ID: {channel_id}")
@@ -238,7 +241,11 @@ def main():
         message = get_latest_message(bot_token, channel_id, args.verbose)
         
         if not message:
-            print("メッセージが見つかりませんでした。")
+            if args.format == 'json':
+                # JSONフォーマットの場合は空のオブジェクトを出力
+                print("{}")
+            else:
+                print("メッセージが見つかりませんでした。")
             return
         
         # メッセージを表示
@@ -248,10 +255,22 @@ def main():
             print(format_message_human(message))
         
     except ValueError as e:
-        print(f"設定エラー: {e}")
+        if args.format == 'json':
+            # JSONフォーマットの場合はエラーもJSON形式で出力
+            import json
+            error_response = {"error": "設定エラー", "message": str(e)}
+            print(json.dumps(error_response, ensure_ascii=False, indent=2))
+        else:
+            print(f"設定エラー: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"エラー: {e}")
+        if args.format == 'json':
+            # JSONフォーマットの場合はエラーもJSON形式で出力
+            import json
+            error_response = {"error": "実行エラー", "message": str(e)}
+            print(json.dumps(error_response, ensure_ascii=False, indent=2))
+        else:
+            print(f"エラー: {e}")
         sys.exit(1)
 
 

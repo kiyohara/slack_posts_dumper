@@ -50,6 +50,7 @@
   - [x] scripts/get_workspace_id.py 作成
   - [x] Bot Tokenを使用したWorkspace ID自動取得
   - [x] auth.test APIによるWorkspace情報取得
+  - [x] human/json両対応（--formatオプション追加）
   - [x] 動作確認・.envファイル自動更新
 - [x] チャネル一覧取得ツール実装
   - [x] scripts/get_channels.py 作成

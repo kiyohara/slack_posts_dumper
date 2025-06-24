@@ -29,6 +29,9 @@ def parse_arguments():
 
   # 詳細ログ出力
   python scripts/get_workspace_id.py --verbose
+
+  # JSON形式で出力
+  python scripts/get_workspace_id.py --format json
         """
     )
     
@@ -41,6 +44,13 @@ def parse_arguments():
         '--verbose', '-v',
         action='store_true',
         help='詳細ログを出力'
+    )
+    
+    parser.add_argument(
+        '--format',
+        choices=['human', 'json'],
+        default='human',
+        help='出力形式（デフォルト: human）'
     )
     
     return parser.parse_args()
@@ -126,41 +136,59 @@ URL: {workspace_info.get('url', 'Unknown')}
     return formatted
 
 
+def format_workspace_info_json(workspace_info: dict) -> str:
+    import json
+    return json.dumps(workspace_info, ensure_ascii=False, indent=2)
+
+
 def main():
     """メイン関数"""
     args = parse_arguments()
     
-    print("=== Slack Workspace ID取得ツール ===")
-    print()
+    # JSONフォーマットの場合はツール名などの出力を抑止
+    if args.format != 'json':
+        print("=== Slack Workspace ID取得ツール ===")
+        print()
     
     try:
         # Bot Tokenを取得
         bot_token = get_bot_token(args.bot_token)
         
-        if args.verbose:
+        if args.verbose and args.format != 'json':
             print(f"Bot Token: {bot_token[:10]}...")
         
         # Workspace情報を取得
         workspace_info = get_workspace_info(bot_token, args.verbose)
         
         # 結果を表示
-        print(format_workspace_info(workspace_info))
-        
-        # Team IDを強調表示
-        team_id = workspace_info.get('team_id')
-        if team_id:
-            print(f"✅ Workspace ID: {team_id}")
-            print()
-            print("このTeam IDを.envファイルのSLACK_WORKSPACE_IDに設定してください:")
-            print(f"SLACK_WORKSPACE_ID={team_id}")
-        
+        if args.format == 'json':
+            print(format_workspace_info_json(workspace_info))
+        else:
+            print(format_workspace_info(workspace_info))
+            # Team IDを強調表示
+            team_id = workspace_info.get('team_id')
+            if team_id:
+                print(f"✅ Workspace ID: {team_id}")
+                print()
+                print("このTeam IDを.envファイルのSLACK_WORKSPACE_IDに設定してください:")
+                print(f"SLACK_WORKSPACE_ID={team_id}")
         return 0
         
     except ValueError as e:
-        print(f"❌ 設定エラー: {e}")
+        if args.format == 'json':
+            import json
+            error_response = {"error": "設定エラー", "message": str(e)}
+            print(json.dumps(error_response, ensure_ascii=False, indent=2))
+        else:
+            print(f"❌ 設定エラー: {e}")
         return 1
     except Exception as e:
-        print(f"❌ エラー: {e}")
+        if args.format == 'json':
+            import json
+            error_response = {"error": "実行エラー", "message": str(e)}
+            print(json.dumps(error_response, ensure_ascii=False, indent=2))
+        else:
+            print(f"❌ エラー: {e}")
         return 1
 
 

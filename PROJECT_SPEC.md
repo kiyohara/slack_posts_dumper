@@ -69,7 +69,7 @@ slack_posts_dumper/
 │       ├── __init__.py
 │       └── settings.py
 ├── scripts/
-│   ├── get_workspace_id.py   # Workspace ID取得用スクリプト
+│   ├── get_workspace_id.py   # Workspace ID取得用スクリプト（human/json両対応）
 │   ├── get_channels.py       # チャネル一覧取得用スクリプト
 │   └── get_latest_message.py # 最新メッセージ取得用スクリプト
 ├── templates/

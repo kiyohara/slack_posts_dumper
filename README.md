@@ -139,13 +139,17 @@ python scripts/get_workspace_id.py --bot-token xoxb-your-bot-token
 
 # 詳細ログ出力
 python scripts/get_workspace_id.py --verbose
+
+# JSON形式で出力
+python scripts/get_workspace_id.py --format json
 ```
 
 #### オプション
 - `--bot-token` : Slack Bot Token（引数があれば優先、なければ環境変数SLACK_BOT_TOKEN）
 - `--verbose, -v` : 詳細ログ出力
+- `--format` : 出力形式（`human` または `json`、デフォルト: `human`）
 
-#### 出力例
+#### 出力例（人間が読みやすい形式）
 ```
 === Workspace情報 ===
 Team ID: T0000000001
@@ -160,6 +164,18 @@ URL: https://example-workspace.slack.com/
 
 このTeam IDを.envファイルのSLACK_WORKSPACE_IDに設定してください:
 SLACK_WORKSPACE_ID=T0000000001
+```
+
+#### 出力例（JSON形式）
+```json
+{
+  "team_id": "T0000000001",
+  "team": "Example Workspace",
+  "team_domain": "example-workspace",
+  "user_id": "U0000000001",
+  "user": "slack_bot",
+  "url": "https://example-workspace.slack.com/"
+}
 ```
 
 #### 注意事項
