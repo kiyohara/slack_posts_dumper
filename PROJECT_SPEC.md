@@ -22,12 +22,18 @@ Slackチャネルの投稿をHTML形式で保存するツール
   - `channels:read` - チャネル情報を読み取り
   - `users:read` - ユーザー情報を読み取り
   - `files:read` - ファイル情報を読み取り（添付ファイル対応）
+  - `emoji:read` - 絵文字情報を読み取り
 - **ユーザー情報解決ユーティリティ（UserResolver）**
   - ユーザーIDからユーザー情報を取得
   - 内部キャッシュ機能（TTL制御）
   - アイコン情報（アバター画像URL、ステータス絵文字、ステータステキスト）
   - 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
   - その他の情報（メールアドレス、チームID、Bot判定、削除判定）
+- **絵文字置換ユーティリティ（EmojiResolver）**
+  - 絵文字キーワード（:emoji:）を画像URLに置換
+  - Slack API emoji.listによる絵文字一覧取得
+  - 内部キャッシュ機能（TTL制御）
+  - カスタム絵文字と標準絵文字の対応
 
 ### 2. データ取得
 - 指定したチャネルの全投稿を取得
@@ -42,6 +48,11 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - スレッド表示
 - リアクション表示
 - 添付ファイル表示
+- **HTMLフィルターパイプライン**
+  - モジュラーなフィルター設計
+  - 絵文字置換、改行処理、HTMLサニタイズ
+  - bleachライブラリによる安全なHTMLサニタイズ
+  - 拡張可能なフィルターパイプライン基盤
 
 ### 4. 保存機能
 - 指定したディレクトリにHTMLファイルを保存
@@ -49,12 +60,38 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - メタデータ（チャネル情報、取得日時など）も保存
 
 ## 技術スタック
-- **言語**: Python
+- **言語**: Python 3.13.1
 - **Slack API**: `slack-sdk`
 - **HTML生成**: Jinja2 テンプレートエンジン
+- **HTMLサニタイズ**: `bleach`
 - **CSS**: カスタムCSS（Slack風デザイン）
 - **JavaScript**: インタラクティブ機能用
 - **依存管理**: Poetry（`pyproject.toml`/`poetry.lock`）
+- **環境変数管理**: direnv + .env
+
+## Slack API リファレンス
+詳細なAPI情報は `docs/slack_api_reference.md` を参照してください。
+
+### 主要なAPIメソッド
+- **認証**: `auth.test` - ワークスペース情報取得
+- **チャネル**: `conversations.list`, `conversations.history`, `conversations.info`
+- **ユーザー**: `users.info`, `users.list`
+- **絵文字**: `emoji.list` - カスタム絵文字一覧取得
+- **ファイル**: `files.info`, `files.list`
+- **リアクション**: `reactions.get`
+
+### 必要な権限（Bot Token Scopes）
+- `channels:history` - チャネルの履歴を読み取り
+- `channels:read` - チャネル情報を読み取り
+- `users:read` - ユーザー情報を読み取り
+- `files:read` - ファイル情報を読み取り
+- `emoji:read` - 絵文字情報を読み取り
+
+### HTMLフィルターパイプライン仕様
+- **処理順序**: 絵文字置換 → 改行処理 → HTMLサニタイズ → 安全出力
+- **許可されたHTMLタグ**: `img`, `br`, `a`, `strong`, `em`, `code`, `pre`
+- **安全性**: bleachライブラリによるXSS対策
+- **拡張性**: 新しいフィルターを簡単に追加可能
 
 ## ファイル構成（2024年6月時点・現状）
 ```
@@ -76,7 +113,8 @@ Slackチャネルの投稿をHTML形式で保存するツール
 │   ├── get_channels.py            # チャネル一覧取得ツール
 │   ├── get_latest_message.py      # 最新メッセージ取得ツール
 │   ├── get_workspace_id.py        # Workspace ID取得ツール
-│   └── test_user_resolver.py      # UserResolverテストツール
+│   ├── test_user_resolver.py      # UserResolverテストツール
+│   └── test_emoji_resolver.py     # EmojiResolverテストツール
 ├── src/                           # Pythonパッケージ本体
 │   ├── __init__.py                # パッケージ初期化
 │   ├── config/                    # 設定管理モジュール
@@ -86,7 +124,8 @@ Slackチャネルの投稿をHTML形式で保存するツール
 │   ├── slack_checker.py           # Slack API接続確認
 │   └── utils/                     # ユーティリティ群
 │       ├── __init__.py
-│       └── user_resolver.py       # ユーザー情報解決ユーティリティ
+│       ├── user_resolver.py       # ユーザー情報解決ユーティリティ
+│       └── emoji_resolver.py      # 絵文字置換ユーティリティ
 └── templates/                     # Jinja2テンプレート
     ├── message.html               # メッセージ表示用テンプレート
     └── README.md                  # テンプレートディレクトリ説明
@@ -123,6 +162,17 @@ Slackチャネルの投稿をHTML形式で保存するツール
   - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
   - テストツール（test_user_resolver.py）の実装
   - 既存スクリプト（get_latest_message.py）への統合
+- **絵文字置換機能・HTMLフィルターパイプラインの実装**
+  - src/utils/emoji_resolver.py 作成
+  - Slack API emoji.listによる絵文字一覧取得
+  - 絵文字キーワード（:emoji:）を画像URLに置換
+  - 内部キャッシュ機能（TTL制御）
+  - テストツール（scripts/test_emoji_resolver.py）の実装
+  - モジュラーなHTMLフィルターパイプライン設計
+  - bleachライブラリによる安全なHTMLサニタイズ
+  - フィルター処理順序の最適化（絵文字置換 → 改行処理 → サニタイズ）
+  - 拡張可能なフィルターパイプライン基盤構築
+  - 実際のHTML出力で絵文字表示・改行処理・安全なサニタイズを確認
 - **プロジェクト簡素化**
   - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - 設定の最適化・セキュリティ向上
@@ -136,14 +186,25 @@ Slackチャネルの投稿をHTML形式で保存するツール
   - 指定チャネルの最新メッセージ1件取得 ✅
   - 人間が読みやすい形式とJSON形式での出力 ✅
   - 添付ファイル、リアクション、スレッド情報の表示 ✅
+- **絵文字置換機能の実装** ✅
+  - Slack API emoji.listによる絵文字一覧取得 ✅
+  - 絵文字キーワード（:emoji:）を画像URLに置換 ✅
+  - 内部キャッシュ機能（TTL制御） ✅
+  - テストツール（scripts/test_emoji_resolver.py）の実装 ✅
+  - 既存スクリプト（get_latest_message.py）への統合 ✅
+- **HTMLフィルターパイプラインの実装** ✅
+  - モジュラーなフィルター設計 ✅
+  - bleachライブラリによる安全なHTMLサニタイズ ✅
+  - フィルター処理順序の最適化 ✅
+  - 拡張可能なフィルターパイプライン基盤構築 ✅
 - Slack API連携本体
 - チャネル履歴取得
 - 基本的なHTML出力
 
 ### Phase 2: UI/UX改善
 - Slack風デザイン
-  - メッセージ中の絵文字（アイコン）を適切に表示する機能
-  - 改行などのHTMLタグを適切に処理する機能
+  - メッセージ中の絵文字（アイコン）を適切に表示する機能 ✅
+  - 改行などのHTMLタグを適切に処理する機能 ✅
   - URLリンクを適切に処理する機能
 - レスポンシブ対応
 - インタラクティブ機能
@@ -169,6 +230,9 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - ✅ 最新メッセージ取得ツール
 - ✅ 設定管理モジュール
 - ✅ ユーザー情報解決ユーティリティ（UserResolver）
+- ✅ 絵文字置換ユーティリティ（EmojiResolver）
+- ✅ HTMLフィルターパイプライン
+- ✅ HTMLサニタイズ機能
 
 ### 動作確認済み環境
 - **Workspace**: 設定済み
@@ -179,7 +243,8 @@ Slackチャネルの投稿をHTML形式で保存するツール
 
 ### 復元手順
 1. **環境復元**: `poetry install --no-root`
-2. **動作確認**: `poetry run python scripts/get_channels.py --verbose`
+2. **動作確認**: `poetry run python scripts/get_latest_message.py --format html --channel-id C09354HEDC1`
+3. **絵文字置換テスト**: `poetry run python scripts/test_emoji_resolver.py`
 3. **Workspace確認**: `poetry run python scripts/get_workspace_id.py`
 4. **最新メッセージ確認**: `poetry run python scripts/get_latest_message.py --channel-id C09354HEDC1`
 

@@ -82,12 +82,35 @@
   - [x] ユーザーのアバター・名前・投稿時刻・本文をSlack風にHTML化
   - [x] フィルタ（slack_time, nl2br）で見やすさ調整
   - [x] 添付画像の見た目を参考にデザイン
-  - [ ] 絵文字・リアクション・添付ファイル等は今後対応
+  - [x] 絵文字置換機能実装
+    - [x] src/utils/emoji_resolver.py 作成
+    - [x] Slack API emoji.listによる絵文字一覧取得
+    - [x] 絵文字キーワード（:emoji:）を画像URLに置換
+    - [x] 内部キャッシュ機能（TTL制御）
+    - [x] テストツール（scripts/test_emoji_resolver.py）の実装
+    - [x] 既存スクリプト（get_latest_message.py）への統合
+  - [x] HTMLフィルターパイプライン実装
+    - [x] モジュラーなフィルター設計
+    - [x] bleachライブラリによる安全なHTMLサニタイズ
+    - [x] フィルター処理順序の最適化
+    - [x] 拡張可能なフィルターパイプライン基盤構築
+  - [ ] リアクション・添付ファイル等は今後対応
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
   - [x] 設定の簡素化完了
   - [x] **重複機能の統合**: check_slack_api.pyを削除（get_workspace_id.pyで代替）
+
+### Slack API ドキュメント整備
+- [x] Slack API リファレンス文書作成
+  - [x] docs/slack_api_reference.md 作成
+  - [x] 主要APIメソッドの詳細説明
+  - [x] 認証・権限・エラーハンドリング情報
+  - [x] プロジェクト固有の使用例
+- [x] Cursor Editor用Slack APIルール作成
+  - [x] .cursor/rules/slack-api-reference.md 作成
+  - [x] Slack API開発ガイドライン
+  - [x] 権限・エラーハンドリング・ベストプラクティス
 
 ## 現在の状況 📊
 
@@ -101,8 +124,8 @@
 ### 設定状況
 - **SLACK_BOT_TOKEN**: 設定済み ✅
 - **SLACK_WORKSPACE_ID**: 設定済み ✅
-- **SLACK_CHANNEL_ID**: 未設定（次回設定予定）
-- **SLACK_USER_TOKEN**: 削除済み（不要）✅
+- **SLACK_CHANNEL_ID**: 設定済み ✅
+- **Slack API権限**: emoji:read追加済み ✅
 
 ### 動作確認済み機能
 - **Workspace ID取得ツール**: 正常動作確認済み
@@ -127,6 +150,17 @@
   - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
   - テストツール（test_user_resolver.py）の実装
   - 既存スクリプト（get_latest_message.py）への統合
+- **絵文字置換機能（EmojiResolver）**: 実装完了
+  - Slack API emoji.listによる絵文字一覧取得
+  - 絵文字キーワード（:emoji:）を画像URLに置換
+  - 内部キャッシュ機能（TTL制御）
+  - テストツール（test_emoji_resolver.py）の実装
+  - 既存スクリプト（get_latest_message.py）への統合
+- **HTMLフィルターパイプライン**: 実装完了
+  - モジュラーなフィルター設計
+  - bleachライブラリによる安全なHTMLサニタイズ
+  - フィルター処理順序の最適化
+  - 拡張可能なフィルターパイプライン基盤構築
 
 ### プロジェクト構造
 ```
@@ -144,35 +178,43 @@ slack_posts_dumper/
 │   ├── project-overview.md      ✅
 │   ├── development-guidelines.md ✅
 │   ├── implementation-notes.md  ✅
-│   └── ai-assistant-rules.md    ✅
+│   ├── ai-assistant-rules.md    ✅
+│   └── slack-api-reference.md   ✅
+├── docs/                        ✅
+│   └── slack_api_reference.md   ✅
 ├── src/                         ✅
 │   ├── __init__.py              ✅
 │   ├── slack_checker.py         ✅
+│   ├── message_renderer.py      ✅
 │   ├── config/                  ✅
 │   │   ├── __init__.py          ✅
 │   │   └── settings.py          ✅
 │   └── utils/                   ✅
 │       ├── __init__.py          ✅
-│       └── user_resolver.py     ✅
+│       ├── user_resolver.py     ✅
+│       └── emoji_resolver.py    ✅
 ├── scripts/                     ✅
 │   ├── get_workspace_id.py      ✅
 │   ├── get_channels.py          ✅
 │   ├── get_latest_message.py    ✅
-│   └── test_user_resolver.py    ✅
-└── (今後: templates/, static/, 実装ファイル)
+│   ├── test_user_resolver.py    ✅
+│   └── test_emoji_resolver.py   ✅
+└── templates/                   ✅
+    └── message.html             ✅
 ```
 
 ### 現在のGit状況
 - **ブランチ**: main
 - **最新コミット**: 04a625b "feat: チャネル一覧取得ツールの実装とドキュメント更新"
-- **変更状態**: クリーン（未コミット変更なし）
+- **変更状態**: 未コミット変更あり（絵文字置換機能、フィルターパイプライン実装）
 
 ### 復元に必要な情報
 - **Poetry環境**: `poetry install --no-root` で依存関係復元
-- **実行コマンド**: `poetry run python scripts/get_channels.py` で動作確認
+- **実行コマンド**: `poetry run python scripts/get_latest_message.py --format html --channel-id C09354HEDC1` で動作確認
 - **環境変数**: .envファイルにSLACK_BOT_TOKENが設定済み
 - **Workspace ID**: 設定済み
 - **利用可能チャネル**: 72件（general, random, github, twitter等）
+- **Slack API権限**: emoji:read追加済み
 
 ## 次のステップ 🎯
 
@@ -186,16 +228,27 @@ slack_posts_dumper/
   - [x] 指定チャネルの最新メッセージ1件取得
   - [x] 人間が読みやすい形式とJSON形式での出力
   - [x] 添付ファイル、リアクション、スレッド情報の表示
-- [ ] templates/ディレクトリ作成
+- [x] 絵文字置換機能実装
+  - [x] src/utils/emoji_resolver.py 作成
+  - [x] Slack API emoji.listによる絵文字一覧取得
+  - [x] 絵文字キーワード（:emoji:）を画像URLに置換
+  - [x] 内部キャッシュ機能（TTL制御）
+  - [x] テストツール（scripts/test_emoji_resolver.py）の実装
+  - [x] 既存スクリプト（get_latest_message.py）への統合
+- [x] HTMLフィルターパイプライン実装
+  - [x] モジュラーなフィルター設計
+  - [x] bleachライブラリによる安全なHTMLサニタイズ
+  - [x] フィルター処理順序の最適化
+  - [x] 拡張可能なフィルターパイプライン基盤構築
 - [ ] static/ディレクトリ作成
 - [ ] Slack API連携本体（slack_client.py）
 - [ ] データ処理（data_processor.py）
 - [ ] HTML出力（html_generator.py, Jinja2テンプレート）
 
 ### Phase 2: UI/UX改善（後回し）
-- [ ] Slack風デザイン実装
-  - [ ] メッセージ中の絵文字（アイコン）を適切に表示する機能
-  - [ ] 改行などのHTMLタグを適切に処理する機能
+- [x] Slack風デザイン実装
+  - [x] メッセージ中の絵文字（アイコン）を適切に表示する機能
+  - [x] 改行などのHTMLタグを適切に処理する機能
   - [ ] URLリンクを適切に処理する機能
 - [ ] レスポンシブ対応
 - [ ] インタラクティブ機能
@@ -218,6 +271,13 @@ slack_posts_dumper/
 - APIトークンの.envファイル管理 ✅
 - .gitignoreで.env除外 ✅
 - .cursorignoreで.env除外 ✅
+- HTMLサニタイズによるXSS対策 ✅
+
+### フィルターパイプライン設計
+- **処理順序**: 絵文字置換 → 改行処理 → HTMLサニタイズ → 安全出力
+- **拡張性**: 新しいフィルターを簡単に追加可能
+- **安全性**: bleachライブラリによる適切なHTMLサニタイズ
+- **保守性**: 各フィルターが独立して動作
 
 ## 更新履歴 📝
 
@@ -248,28 +308,17 @@ slack_posts_dumper/
   - チャネル名での検索機能実装
   - エラーハンドリング・詳細ログ出力機能
   - 実際のワークスペースで72件のチャネル取得成功
-  - 検索機能・JSON形式出力の動作確認完了
-- **重複機能の統合・プロジェクト最適化**
-  - check_slack_api.pyを削除（get_workspace_id.pyで代替）
-  - 各種.mdファイルの更新
-  - プロジェクト構造の簡素化完了
-- **最新メッセージ取得ツール実装・動作確認**
-  - scripts/get_latest_message.py 作成
-  - conversations.history APIによる最新メッセージ1件取得
-  - 人間が読みやすい形式とJSON形式での出力対応
-  - 添付ファイル、リアクション、スレッド情報の表示
-  - エラーハンドリング・詳細ログ出力
-  - 動作確認（slack_posts_dumper_testチャンネルで成功）
-- **ユーザー情報解決ユーティリティ（UserResolver）実装・統合**
-  - src/utils/user_resolver.py 作成
-  - ユーザーIDからユーザー情報を取得するユーティリティクラス
-  - 内部キャッシュ機能（TTL制御、デフォルト1時間）
-  - アイコン情報の取得（アバター画像URL、ステータス絵文字、ステータステキスト）
-  - 表示名の自動解決（表示名、実名、ユーザー名の優先順位）
-  - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
-  - テストツール（scripts/test_user_resolver.py）の実装
-  - 既存スクリプト（get_latest_message.py）への統合
-  - README.md、PROJECT_SPEC.md、PROGRESS.mdの更新
+- **絵文字置換機能・HTMLフィルターパイプライン実装**
+  - src/utils/emoji_resolver.py 作成
+  - Slack API emoji.listによる絵文字一覧取得
+  - 絵文字キーワード（:emoji:）を画像URLに置換
+  - 内部キャッシュ機能（TTL制御）
+  - テストツール（scripts/test_emoji_resolver.py）の実装
+  - モジュラーなHTMLフィルターパイプライン設計
+  - bleachライブラリによる安全なHTMLサニタイズ
+  - フィルター処理順序の最適化（絵文字置換 → 改行処理 → サニタイズ）
+  - 拡張可能なフィルターパイプライン基盤構築
+  - 実際のHTML出力で絵文字表示・改行処理・安全なサニタイズを確認
 - **プロジェクト簡素化**
 
 ## 今後の残件・改善予定

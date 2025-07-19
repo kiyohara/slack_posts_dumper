@@ -23,6 +23,7 @@ from src.config.settings import (
     validate_workspace_id_format
 )
 from src.utils.user_resolver import create_user_resolver
+from src.utils.emoji_resolver import create_emoji_resolver
 from src.message_renderer import SlackMessageHtmlRenderer
 
 
@@ -287,7 +288,8 @@ def main():
             # ユーザー情報を取得
             client = WebClient(token=bot_token)
             user_resolver = create_user_resolver(client)
-            renderer = SlackMessageHtmlRenderer()
+            emoji_resolver = create_emoji_resolver(client)
+            renderer = SlackMessageHtmlRenderer(emoji_resolver=emoji_resolver)
             html = renderer.render(message, user_resolver)
             print(html)
         else:

@@ -8,11 +8,15 @@
 - Slack APIを通じて指定したチャネルのデータを取得
 - 取得したデータをSlack上で閲覧している見栄えと同じような内容となるHTMLとして保存
 - チャネルの投稿履歴をローカルに保存し、オフラインでも閲覧可能
+- **絵文字の適切な表示** - Slack API emoji.listによる絵文字一覧取得・置換
+- **HTMLフィルターパイプライン** - モジュラーなフィルター設計による安全なHTML処理
 
 ### 技術要件
 - Slack APIを使用したデータ取得
 - HTML形式での出力
 - Slackの見た目を再現したスタイリング
+- **絵文字置換機能** - 絵文字キーワード（:emoji:）を画像URLに置換
+- **HTMLサニタイズ** - bleachライブラリによる安全なHTML処理
 
 ## 開発環境
 - Cursor Editor
@@ -45,6 +49,7 @@
      - `channels:read` - チャネル情報を読み取り
      - `users:read` - ユーザー情報を読み取り
      - `files:read` - ファイル情報を読み取り（添付ファイル対応）
+     - `emoji:read` - 絵文字情報を読み取り（絵文字置換機能用）
 
 3. **Appのインストール**
    - 「OAuth & Permissions」ページの上部で「Install to Workspace」をクリック
@@ -119,11 +124,37 @@
    cp env.example .env
    # .envファイルを編集してSlack APIトークンやチャネルID等を設定
    # SLACK_BOT_TOKEN=xoxb-your-bot-token-here
-   # SLACK_WORKSPACE_ID=T1234567890
-   # SLACK_CHANNEL_ID=C1234567890
+# SLACK_WORKSPACE_ID=T1234567890
+# SLACK_CHANNEL_ID=C1234567890
+# 
+# 注意: emoji:read権限が必要です（絵文字置換機能用）
    ```
 
 ## 使い方
+
+### 絵文字置換テスト
+
+絵文字置換機能の動作を確認するためのテストツールが用意されています。
+
+```bash
+# 絵文字一覧取得テスト
+poetry run python scripts/test_emoji_resolver.py
+
+# 特定の絵文字のURL取得テスト
+poetry run python scripts/test_emoji_resolver.py --emoji slightly_smiling_face
+
+# テキスト置換テスト
+poetry run python scripts/test_emoji_resolver.py --text "こんにちは :slightly_smiling_face: 今日は良い天気ですね :sunny:"
+```
+
+### HTMLフィルターパイプライン
+
+HTMLフィルターパイプラインは以下の順序で処理されます：
+
+1. **絵文字置換** - `:emoji:` → `<img>`タグ
+2. **改行処理** - `\n` → `<br>`タグ
+3. **HTMLサニタイズ** - 許可されたタグのみ残す
+4. **安全出力** - HTMLとして出力
 
 ### Workspace ID取得ツール
 
@@ -560,6 +591,133 @@ Bot: False
 - 大量のユーザー情報を取得する場合は、定期的に`cleanup_expired_cache()`を呼び出すことを推奨します
 - ユーザーが見つからない場合は`None`を返します
 
+### 絵文字解決ユーティリティ
+
+Slackのメッセージ内の絵文字（`:emoji_name:`形式）を画像タグに置換するためのユーティリティライブラリが用意されています。Slack APIの`emoji.list`を使用してカスタム絵文字の情報を取得し、標準絵文字はSlackの公式URLを使用します。
+
+#### 機能
+- **絵文字一覧の取得**: Slack APIの`emoji.list`を使用してカスタム絵文字一覧を取得
+- **キャッシュ機能**: 一度取得した絵文字情報をメモリにキャッシュ
+- **TTL制御**: キャッシュの有効期限を設定可能（デフォルト: 1時間）
+- **標準絵文字対応**: Slackの公式絵文字URLを使用
+- **テキスト内絵文字置換**: メッセージ内の`:emoji_name:`を画像タグに置換
+- **エラーハンドリング**: 絵文字が見つからない場合の適切な処理
+
+#### 使用例
+
+```python
+from slack_sdk import WebClient
+from src.utils.emoji_resolver import create_emoji_resolver
+
+# Slackクライアントを初期化
+client = WebClient(token="xoxb-your-bot-token")
+
+# EmojiResolverインスタンスを作成（キャッシュTTL: 1時間）
+resolver = create_emoji_resolver(client, cache_ttl=3600)
+
+# 絵文字一覧を取得
+emoji_list = resolver.get_emoji_list()
+print(f"取得した絵文字数: {len(emoji_list)}")
+
+# 特定の絵文字のURLを取得
+emoji_url = resolver.get_emoji_url("slightly_smiling_face")
+print(f"絵文字URL: {emoji_url}")
+
+# テキスト内の絵文字を置換
+text = "こんにちは :slightly_smiling_face: 今日は良い天気ですね :sunny:"
+replaced_text = resolver.replace_emojis_in_text(text)
+print(f"置換後のテキスト: {replaced_text}")
+
+# キャッシュ情報を取得
+cache_info = resolver.get_cache_info()
+print(f"キャッシュ済み絵文字数: {cache_info['total_cached_emojis']}")
+```
+
+#### テストツール
+
+EmojiResolverの動作をテストするためのツールが用意されています。
+
+##### 実行例
+```bash
+# 環境変数から設定を取得してテスト
+python scripts/test_emoji_resolver.py
+
+# 特定の絵文字をテスト
+python scripts/test_emoji_resolver.py --emoji "slightly_smiling_face"
+
+# テキスト内の絵文字置換をテスト
+python scripts/test_emoji_resolver.py --text "こんにちは :slightly_smiling_face: 今日は良い天気ですね :sunny:"
+
+# キャッシュTTLを変更してテスト
+python scripts/test_emoji_resolver.py --cache-ttl 1800
+
+# 強制リフレッシュでテスト
+python scripts/test_emoji_resolver.py --force-refresh
+
+# 詳細ログ出力
+python scripts/test_emoji_resolver.py --verbose
+```
+
+##### オプション
+- `--bot-token` : Slack Bot Token（引数があれば優先、なければ環境変数SLACK_BOT_TOKEN）
+- `--emoji` : テスト対象の絵文字名（例: slightly_smiling_face）
+- `--text` : 絵文字置換をテストするテキスト
+- `--cache-ttl` : キャッシュの有効期限（秒、デフォルト: 3600）
+- `--force-refresh` : キャッシュを無視して強制的に再取得
+- `--verbose, -v` : 詳細ログ出力
+
+##### テスト内容
+1. **絵文字一覧の取得テスト**: 基本的な絵文字一覧取得機能
+2. **特定絵文字のテスト**: 指定した絵文字のURL取得
+3. **テキスト置換のテスト**: メッセージ内の絵文字置換機能
+4. **キャッシュ機能のテスト**: キャッシュによる高速化効果の確認
+5. **標準絵文字のテスト**: Slack公式絵文字の動作確認
+
+##### 出力例
+```
+=== 絵文字解決ユーティリティテストツール ===
+
+絵文字一覧を取得中...
+✅ 絵文字一覧取得完了: 15件
+
+=== 絵文字一覧 ===
+:custom_emoji1: -> https://files.slack.com/files-tmb/...
+:custom_emoji2: -> https://files.slack.com/files-tmb/...
+:slightly_smiling_face: -> https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/slightly_smiling_face.png
+==================
+
+=== 絵文字 'slightly_smiling_face' のテスト ===
+絵文字名: :slightly_smiling_face:
+URL: https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/slightly_smiling_face.png
+HTML: <img src="https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/slightly_smiling_face.png" alt=":slightly_smiling_face:" class="slack-emoji">
+
+=== テキスト内の絵文字置換テスト ===
+元のテキスト: こんにちは :slightly_smiling_face: 今日は良い天気ですね :sunny:
+置換後のテキスト: こんにちは <img src="https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/slightly_smiling_face.png" alt=":slightly_smiling_face:" class="slack-emoji" width="20" height="20" style="vertical-align: middle;"> 今日は良い天気ですね <img src="https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/sunny.png" alt=":sunny:" class="slack-emoji" width="20" height="20" style="vertical-align: middle;">
+
+=== キャッシュ情報 ===
+キャッシュ済み絵文字数: 15
+キャッシュTTL: 3600秒
+キャッシュ経過時間: 0.0秒
+キャッシュ有効: はい
+
+=== 標準絵文字のテスト ===
+:slightly_smiling_face: -> https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/slightly_smiling_face.png
+:sunny: -> https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/sunny.png
+:heart: -> https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/heart.png
+:thumbsup: -> https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/thumbsup.png
+:check: -> https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/check.png
+
+✅ EmojiResolverテスト完了
+```
+
+#### 注意事項
+- Bot Token（xoxb-で始まる）が必要です
+- `emoji:read`権限が必要です
+- キャッシュはメモリ上に保存されるため、プログラム終了時に失われます
+- 標準絵文字はSlackの公式URLを使用します
+- カスタム絵文字はワークスペース固有のURLを使用します
+
 ### .env 設定例
 ```
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
@@ -569,6 +727,18 @@ OUTPUT_DIR=output
 LOG_LEVEL=INFO
 DEBUG=False
 ```
+
+## ドキュメント
+
+### プロジェクトドキュメント
+- **プロジェクト仕様書**: `PROJECT_SPEC.md` - プロジェクトの詳細仕様
+- **開発進捗**: `PROGRESS.md` - 開発の進捗状況
+- **Slack API リファレンス**: `docs/slack_api_reference.md` - Slack APIの詳細情報
+
+### 外部リンク
+- **Slack API Methods**: https://api.slack.com/methods
+- **Slack API Documentation**: https://api.slack.com/
+- **Slack SDK for Python**: https://slack.dev/python-slack-sdk/
 
 ## 開発者向け情報
 
