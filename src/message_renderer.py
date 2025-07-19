@@ -102,7 +102,7 @@ class SlackMessageHtmlRenderer:
         ]
         
         allowed_attributes = {
-            'img': ['src', 'alt', 'class', 'width', 'height', 'style'],
+            'img': ['src', 'alt', 'class', 'width', 'height'],
             'a': ['href', 'target', 'rel'],
             'br': [],
             'strong': [], 'b': [],

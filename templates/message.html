@@ -1,6 +1,6 @@
 <div class="slack-message">
   <div class="slack-message__avatar">
-    <img src="{{ user.profile.image_72 }}" alt="avatar" width="48" height="48" style="border-radius: 6px;">
+    <img src="{{ user.profile.image_72 }}" alt="avatar" width="48" height="48" class="slack-avatar">
   </div>
   <div class="slack-message__content">
     <div class="slack-message__header">
@@ -23,6 +23,9 @@
 }
 .slack-message__avatar {
   margin-right: 12px;
+}
+.slack-avatar {
+  border-radius: 6px;
 }
 .slack-message__username {
   font-weight: bold;
