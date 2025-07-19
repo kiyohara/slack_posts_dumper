@@ -148,6 +148,11 @@
   - 添付ファイル、リアクション、スレッド情報の表示
   - エラーハンドリング・詳細ログ出力
   - 動作確認（slack_posts_dumper_testチャンネルで成功）
+- **ローカルアセット管理機能**: 実装完了・動作確認済み
+  - AssetManager: URLハッシュベースのファイル管理
+  - AssetDownloader: Slackアセットの自動ダウンロード
+  - 統合されたレンダラー: 通常モード・ローカルモード対応
+  - ローカルファイル形式出力（format=local）: 動作確認済み
 - **ユーザー情報解決ユーティリティ（UserResolver）**: 実装完了
   - ユーザーIDからユーザー情報を取得するユーティリティクラス
   - 内部キャッシュ機能（TTL制御、デフォルト1時間）
@@ -197,22 +202,27 @@ slack_posts_dumper/
 ├── src/                         ✅
 │   ├── __init__.py              ✅
 │   ├── slack_checker.py         ✅
-│   ├── message_renderer.py      ✅ (URL変換フィルター追加)
+│   ├── message_renderer.py      ✅ (統合レンダラー・ローカルアセット置換フィルター追加)
 │   ├── config/                  ✅
 │   │   ├── __init__.py          ✅
 │   │   └── settings.py          ✅
 │   └── utils/                   ✅
 │       ├── __init__.py          ✅
 │       ├── user_resolver.py     ✅
-│       └── emoji_resolver.py    ✅
+│       ├── emoji_resolver.py    ✅
+│       ├── asset_manager.py     ✅
+│       └── asset_downloader.py  ✅
 ├── scripts/                     ✅
 │   ├── get_workspace_id.py      ✅
 │   ├── get_channels.py          ✅
-│   ├── get_latest_message.py    ✅ (フィルターパイプライン統合)
+│   ├── get_latest_message.py    ✅ (ローカルファイル形式出力追加)
 │   ├── test_user_resolver.py    ✅
-│   └── test_emoji_resolver.py   ✅
+│   ├── test_emoji_resolver.py   ✅
+│   ├── test_asset_manager.py    ✅
+│   ├── test_asset_downloader.py ✅
+│   └── test_integrated_renderer.py ✅
 ├── templates/                   ✅
-│   └── message.html             ✅ (URL変換フィルター追加)
+│   └── message.html             ✅ (ローカルアセット置換フィルター追加)
 └── docs/                        ✅
     └── slack_api_reference.md   ✅
 ```
@@ -220,16 +230,24 @@ slack_posts_dumper/
 ## 技術的成果 🎯
 
 ### HTMLフィルターパイプライン設計
-- **処理順序**: 絵文字置換 → URL変換 → 改行処理 → HTMLサニタイズ → 安全出力
+- **処理順序**: 絵文字置換 → ローカルアセット置換 → URL変換 → 改行処理 → HTMLサニタイズ → 安全出力
 - **拡張性**: 新しいフィルターを簡単に追加可能
 - **安全性**: bleachライブラリによるXSS対策
 - **モジュラー設計**: 各フィルターが独立して動作
+- **統合レンダラー**: 通常モードとローカルモードを1つのレンダラーで統一的に処理
 
 ### URL変換機能
 - **Slack API形式対応**: `<http://example.com>` → `<a href="...">` タグ
 - **表示テキスト対応**: `<http://example.com|表示テキスト>` 形式
 - **フィルターパイプライン統合**: 絵文字処理と同じ設計パターン
 - **動作確認済み**: HTML形式でクリック可能なリンクに変換
+
+### ローカルアセット管理機能
+- **AssetManager**: URLハッシュベースのローカルファイル管理
+- **AssetDownloader**: Slackアセットの自動ダウンロードとキャッシュ
+- **統合レンダラー**: 通常モードとローカルモードを1つのレンダラーで統一的に処理
+- **フィルター統合**: local_asset_replaceフィルターで画像タグのsrcをローカルパスに置換
+- **オフライン対応**: ダウンロードしたアセットでオフライン表示が可能
 
 ### 絵文字置換機能・HTMLフィルターパイプライン実装
 - src/utils/emoji_resolver.py 作成
@@ -249,6 +267,9 @@ slack_posts_dumper/
 - [x] メッセージ中の絵文字（アイコン）を適切に表示する機能
 - [x] 改行などのHTMLタグを適切に処理する機能
 - [x] URLリンクを適切に処理する機能
+- [x] ローカルアセット管理機能（絵文字・アバター画像のローカルダウンロード）
+- [x] 統合されたレンダラー（通常モード・ローカルモード）
+- [x] オフライン表示対応
 - [ ] 次のバグ修正（段階的に対応予定）
 
 ---

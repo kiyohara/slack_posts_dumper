@@ -11,6 +11,8 @@
 - **絵文字の適切な表示** - Slack API emoji.listによる絵文字一覧取得・置換
 - **URL変換機能** - Slack APIのURL形式（<http://example.com>）をクリック可能なリンクに変換
 - **HTMLフィルターパイプライン** - モジュラーなフィルター設計による安全なHTML処理
+- **ローカルアセット管理** - 絵文字やアバター画像をローカルにダウンロードしてオフライン表示
+- **統合されたレンダラー** - 通常モードとローカルモードを1つのレンダラーで統一的に処理
 
 ### 技術要件
 - Slack APIを使用したデータ取得
@@ -19,6 +21,9 @@
 - **絵文字置換機能** - 絵文字キーワード（:emoji:）を画像URLに置換
 - **URL変換機能** - Slack APIのURL形式をHTMLの`<a>`タグに変換
 - **HTMLサニタイズ** - bleachライブラリによる安全なHTML処理
+- **アセット管理システム** - URLハッシュベースのローカルファイル管理
+- **アセットダウンロード機能** - Slackアセットの自動ダウンロードとキャッシュ
+- **統合フィルターパイプライン** - 絵文字置換とローカルパス置換の統合処理
 
 ## 開発環境
 - Cursor Editor
@@ -592,6 +597,82 @@ Bot: False
 - `users:read`権限が必要です
 - キャッシュはメモリ上に保存されるため、プログラム終了時に失われます
 - 大量のユーザー情報を取得する場合は、定期的に`cleanup_expired_cache()`を呼び出すことを推奨します
+
+### ローカルアセット管理機能
+
+Slackの絵文字やアバター画像などのアセットをローカルにダウンロードし、オフラインでも表示できる機能が追加されました。
+
+#### 主な機能
+- **アセット管理システム** - URLハッシュベースのローカルファイル管理
+- **アセットダウンロード機能** - Slackアセットの自動ダウンロードとキャッシュ
+- **統合フィルターパイプライン** - 絵文字置換とローカルパス置換の統合処理
+- **重複ダウンロード防止** - 同じURLのアセットは一度だけダウンロード
+- **マニフェスト管理** - ダウンロードしたアセットの情報をJSONファイルで管理
+
+#### 使用方法
+
+```bash
+# ローカルファイル形式で出力（アセットをダウンロード）
+python scripts/get_latest_message.py --format local --output-dir ./output
+```
+
+#### 生成されるファイル構造
+
+```
+output/
+├── message.html          # ローカルファイル参照のHTML
+├── assets/              # ダウンロードしたアセット
+│   ├── [hash].png       # アバター画像
+│   ├── [hash].gif       # 絵文字画像
+│   └── ...
+└── assets_manifest.json # アセット情報のマニフェスト
+```
+
+#### フィルター処理の流れ
+
+```
+1. emoji_replace: :smile: → <img src="https://...">
+2. local_asset_replace: <img src="https://..."> → <img src="assets/...">
+3. url_replace: URLの置換
+4. nl2br: 改行の処理
+5. sanitize_html: HTMLサニタイズ
+```
+
+#### 統合されたレンダラー
+
+通常モードとローカルモードを1つのレンダラーで統一的に処理します：
+
+```python
+# 通常モード
+renderer = SlackMessageHtmlRenderer(emoji_resolver=emoji_resolver)
+
+# ローカルモード
+renderer = SlackMessageHtmlRenderer(
+    emoji_resolver=emoji_resolver, 
+    asset_manager=asset_manager
+)
+```
+
+#### テストツール
+
+ローカルアセット管理機能のテストツールが用意されています：
+
+```bash
+# AssetManagerのテスト
+python scripts/test_asset_manager.py
+
+# AssetDownloaderのテスト
+python scripts/test_asset_downloader.py
+
+# 統合されたレンダラーのテスト
+python scripts/test_integrated_renderer.py
+```
+
+#### 注意事項
+- `format=local`の場合は`--output-dir`オプションが必要です
+- アセットのダウンロードには時間がかかる場合があります
+- ダウンロードしたアセットは`assets_manifest.json`で管理されます
+- 孤立したファイルは`cleanup_orphaned_assets()`で削除できます
 - ユーザーが見つからない場合は`None`を返します
 
 ### 絵文字解決ユーティリティ

@@ -57,11 +57,20 @@ Slackチャネルの投稿をHTML形式で保存するツール
   - 絵文字置換、改行処理、HTMLサニタイズ
   - bleachライブラリによる安全なHTMLサニタイズ
   - 拡張可能なフィルターパイプライン基盤
+- **ローカルアセット管理機能**
+  - 絵文字やアバター画像のローカルダウンロード
+  - URLハッシュベースのファイル管理
+  - 統合されたレンダラー（通常モード・ローカルモード）
+  - オフライン表示対応
 
 ### 4. 保存機能
 - 指定したディレクトリにHTMLファイルを保存
 - 添付ファイルもローカルにダウンロード
 - メタデータ（チャネル情報、取得日時など）も保存
+- **ローカルアセット保存機能**
+  - 絵文字やアバター画像のローカル保存
+  - アセットマニフェストファイルの生成
+  - 孤立ファイルの自動クリーンアップ
 
 ## 技術スタック
 - **言語**: Python 3.13.1
@@ -72,6 +81,8 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - **JavaScript**: インタラクティブ機能用
 - **依存管理**: Poetry（`pyproject.toml`/`poetry.lock`）
 - **環境変数管理**: direnv + .env
+- **アセット管理**: URLハッシュベースのファイルシステム
+- **HTTP通信**: `requests`ライブラリ
 
 ## Slack API リファレンス
 詳細なAPI情報は `docs/slack_api_reference.md` を参照してください。
@@ -92,10 +103,11 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - `emoji:read` - 絵文字情報を読み取り
 
 ### HTMLフィルターパイプライン仕様
-- **処理順序**: 絵文字置換 → URL変換 → 改行処理 → HTMLサニタイズ → 安全出力
+- **処理順序**: 絵文字置換 → ローカルアセット置換 → URL変換 → 改行処理 → HTMLサニタイズ → 安全出力
 - **許可されたHTMLタグ**: `img`, `br`, `a`, `strong`, `em`, `code`, `pre`
 - **安全性**: bleachライブラリによるXSS対策
 - **拡張性**: 新しいフィルターを簡単に追加可能
+- **ローカルアセット置換**: SlackのURLをローカルファイルパスに置換
 
 ## ファイル構成（2024年6月時点・現状）
 ```
@@ -118,7 +130,10 @@ Slackチャネルの投稿をHTML形式で保存するツール
 │   ├── get_latest_message.py      # 最新メッセージ取得ツール
 │   ├── get_workspace_id.py        # Workspace ID取得ツール
 │   ├── test_user_resolver.py      # UserResolverテストツール
-│   └── test_emoji_resolver.py     # EmojiResolverテストツール
+│   ├── test_emoji_resolver.py     # EmojiResolverテストツール
+│   ├── test_asset_manager.py      # AssetManagerテストツール
+│   ├── test_asset_downloader.py   # AssetDownloaderテストツール
+│   └── test_integrated_renderer.py # 統合レンダラーテストツール
 ├── src/                           # Pythonパッケージ本体
 │   ├── __init__.py                # パッケージ初期化
 │   ├── config/                    # 設定管理モジュール
@@ -129,7 +144,9 @@ Slackチャネルの投稿をHTML形式で保存するツール
 │   └── utils/                     # ユーティリティ群
 │       ├── __init__.py
 │       ├── user_resolver.py       # ユーザー情報解決ユーティリティ
-│       └── emoji_resolver.py      # 絵文字置換ユーティリティ
+│       ├── emoji_resolver.py      # 絵文字置換ユーティリティ
+│       ├── asset_manager.py       # アセット管理ユーティリティ
+│       └── asset_downloader.py    # アセットダウンロードユーティリティ
 └── templates/                     # Jinja2テンプレート
     ├── message.html               # メッセージ表示用テンプレート
     └── README.md                  # テンプレートディレクトリ説明
@@ -243,6 +260,10 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - ✅ 絵文字置換ユーティリティ（EmojiResolver）
 - ✅ HTMLフィルターパイプライン
 - ✅ HTMLサニタイズ機能
+- ✅ ローカルアセット管理機能（AssetManager）
+- ✅ アセットダウンロード機能（AssetDownloader）
+- ✅ 統合されたレンダラー（通常モード・ローカルモード）
+- ✅ ローカルファイル形式出力（format=local）
 
 ### 動作確認済み環境
 - **Workspace**: 設定済み
