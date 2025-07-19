@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 import html
 import bleach
+import re
 
 class SlackMessageHtmlRenderer:
     """
@@ -22,6 +23,7 @@ class SlackMessageHtmlRenderer:
         self.env.filters['slack_time'] = self._slack_time_filter
         self.env.filters['nl2br'] = self._nl2br_filter
         self.env.filters['emoji_replace'] = self._emoji_replace_filter
+        self.env.filters['url_replace'] = self._url_replace_filter
         self.env.filters['sanitize_html'] = self._html_escape_filter
         self.template = self.env.get_template("message.html")
         self.emoji_resolver = emoji_resolver
@@ -66,6 +68,23 @@ class SlackMessageHtmlRenderer:
         return self.emoji_resolver.replace_emojis_in_text(value)
     
     @staticmethod
+    def _url_replace_filter(value):
+        """SlackのURL形式をクリック可能なリンクに変換"""
+        if not value:
+            return value
+        
+        # <http://example.com> 形式のURLを検出して変換
+        # パターン: <http(s)://...> または <http(s)://...|表示テキスト>
+        url_pattern = r'<(https?://[^>|]+)(?:\|([^>]+))?>'
+        
+        def replace_url(match):
+            url = match.group(1)
+            display_text = match.group(2) if match.group(2) else url
+            return f'<a href="{url}" target="_blank">{display_text}</a>'
+        
+        return re.sub(url_pattern, replace_url, value)
+    
+    @staticmethod
     def _html_escape_filter(value):
         """HTMLサニタイズ（許可されたタグのみ許可）"""
         if not value:
@@ -75,7 +94,7 @@ class SlackMessageHtmlRenderer:
         allowed_tags = [
             'img',  # 絵文字用
             'br',   # 改行用
-            'a',    # リンク用（将来的にURL置換機能で使用）
+            'a',    # リンク用（URL置換機能で使用）
             'strong', 'b',  # 太字
             'em', 'i',      # 斜体
             'code',         # インラインコード

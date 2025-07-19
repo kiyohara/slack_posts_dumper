@@ -4,7 +4,7 @@
 **プロジェクト名**: Slack Posts Dumper  
 **目的**: Slackチャネルの投稿をHTMLとして保存するツール  
 **開始日**: 2024年12月  
-**現在のフェーズ**: 基本機能実装開始
+**現在のフェーズ**: 基本機能実装・バグ修正
 
 ## 完了済みタスク ✅
 
@@ -94,6 +94,12 @@
     - [x] bleachライブラリによる安全なHTMLサニタイズ
     - [x] フィルター処理順序の最適化
     - [x] 拡張可能なフィルターパイプライン基盤構築
+  - [x] URL変換機能のフィルターパイプライン統合
+    - [x] Slack APIのURL形式（<http://example.com>）の調査
+    - [x] URL変換フィルター（url_replace）の実装
+    - [x] フィルターパイプラインへの統合（emoji_replace → url_replace → nl2br → sanitize_html → safe）
+    - [x] 個別のURL変換関数を削除し、フィルターパイプラインに統一
+    - [x] 動作確認（HTML形式でクリック可能なリンクに変換）
   - [ ] リアクション・添付ファイル等は今後対応
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
@@ -161,6 +167,12 @@
   - bleachライブラリによる安全なHTMLサニタイズ
   - フィルター処理順序の最適化
   - 拡張可能なフィルターパイプライン基盤構築
+  - **URL変換フィルター統合完了**
+    - Slack APIのURL形式（<http://example.com>）の調査・理解
+    - URL変換フィルター（url_replace）の実装
+    - フィルターパイプラインへの統合
+    - 処理順序: emoji_replace → url_replace → nl2br → sanitize_html → safe
+    - 動作確認済み（HTML形式でクリック可能なリンクに変換）
 
 ### プロジェクト構造
 ```
@@ -185,7 +197,7 @@ slack_posts_dumper/
 ├── src/                         ✅
 │   ├── __init__.py              ✅
 │   ├── slack_checker.py         ✅
-│   ├── message_renderer.py      ✅
+│   ├── message_renderer.py      ✅ (URL変換フィルター追加)
 │   ├── config/                  ✅
 │   │   ├── __init__.py          ✅
 │   │   └── settings.py          ✅
@@ -196,137 +208,50 @@ slack_posts_dumper/
 ├── scripts/                     ✅
 │   ├── get_workspace_id.py      ✅
 │   ├── get_channels.py          ✅
-│   ├── get_latest_message.py    ✅
+│   ├── get_latest_message.py    ✅ (フィルターパイプライン統合)
 │   ├── test_user_resolver.py    ✅
 │   └── test_emoji_resolver.py   ✅
-└── templates/                   ✅
-    └── message.html             ✅
+├── templates/                   ✅
+│   └── message.html             ✅ (URL変換フィルター追加)
+└── docs/                        ✅
+    └── slack_api_reference.md   ✅
 ```
 
-### 現在のGit状況
-- **ブランチ**: main
-- **最新コミット**: 04a625b "feat: チャネル一覧取得ツールの実装とドキュメント更新"
-- **変更状態**: 未コミット変更あり（絵文字置換機能、フィルターパイプライン実装）
+## 技術的成果 🎯
 
-### 復元に必要な情報
-- **Poetry環境**: `poetry install --no-root` で依存関係復元
-- **実行コマンド**: `poetry run python scripts/get_latest_message.py --format html --channel-id C09354HEDC1` で動作確認
-- **環境変数**: .envファイルにSLACK_BOT_TOKENが設定済み
-- **Workspace ID**: 設定済み
-- **利用可能チャネル**: 72件（general, random, github, twitter等）
-- **Slack API権限**: emoji:read追加済み
-
-## 次のステップ 🎯
-
-### Phase 1: 基本機能実装（次の優先タスク）
-- [x] Channel ID取得ツール実装
-  - [x] scripts/get_channels.py 作成
-  - [x] ワークスペース内のチャネル一覧取得
-  - [x] チャネル名からChannel ID検索機能
-- [x] 最新メッセージ取得ツール実装
-  - [x] scripts/get_latest_message.py 作成
-  - [x] 指定チャネルの最新メッセージ1件取得
-  - [x] 人間が読みやすい形式とJSON形式での出力
-  - [x] 添付ファイル、リアクション、スレッド情報の表示
-- [x] 絵文字置換機能実装
-  - [x] src/utils/emoji_resolver.py 作成
-  - [x] Slack API emoji.listによる絵文字一覧取得
-  - [x] 絵文字キーワード（:emoji:）を画像URLに置換
-  - [x] 内部キャッシュ機能（TTL制御）
-  - [x] テストツール（scripts/test_emoji_resolver.py）の実装
-  - [x] 既存スクリプト（get_latest_message.py）への統合
-- [x] HTMLフィルターパイプライン実装
-  - [x] モジュラーなフィルター設計
-  - [x] bleachライブラリによる安全なHTMLサニタイズ
-  - [x] フィルター処理順序の最適化
-  - [x] 拡張可能なフィルターパイプライン基盤構築
-- [ ] static/ディレクトリ作成
-- [ ] Slack API連携本体（slack_client.py）
-- [ ] データ処理（data_processor.py）
-- [ ] HTML出力（html_generator.py, Jinja2テンプレート）
-
-### Phase 2: UI/UX改善（後回し）
-- [x] Slack風デザイン実装
-  - [x] メッセージ中の絵文字（アイコン）を適切に表示する機能
-  - [x] 改行などのHTMLタグを適切に処理する機能
-  - [ ] URLリンクを適切に処理する機能
-- [ ] レスポンシブ対応
-- [ ] インタラクティブ機能
-
-### Phase 3: 高度な機能（後回し）
-- [ ] 添付ファイル対応
-- [ ] スレッド表示
-- [ ] 検索機能
-- [ ] エクスポート機能
-
-## 技術的考慮事項 ⚠️
-
-### 実装時の注意点
-- Slack APIのレート制限対応
-- 大量データ取得時のページネーション
-- 個人情報の適切な取り扱い
-- 添付ファイルの容量制限考慮
-
-### セキュリティ
-- APIトークンの.envファイル管理 ✅
-- .gitignoreで.env除外 ✅
-- .cursorignoreで.env除外 ✅
-- HTMLサニタイズによるXSS対策 ✅
-
-### フィルターパイプライン設計
-- **処理順序**: 絵文字置換 → 改行処理 → HTMLサニタイズ → 安全出力
+### HTMLフィルターパイプライン設計
+- **処理順序**: 絵文字置換 → URL変換 → 改行処理 → HTMLサニタイズ → 安全出力
 - **拡張性**: 新しいフィルターを簡単に追加可能
-- **安全性**: bleachライブラリによる適切なHTMLサニタイズ
-- **保守性**: 各フィルターが独立して動作
+- **安全性**: bleachライブラリによるXSS対策
+- **モジュラー設計**: 各フィルターが独立して動作
 
-## 更新履歴 📝
+### URL変換機能
+- **Slack API形式対応**: `<http://example.com>` → `<a href="...">` タグ
+- **表示テキスト対応**: `<http://example.com|表示テキスト>` 形式
+- **フィルターパイプライン統合**: 絵文字処理と同じ設計パターン
+- **動作確認済み**: HTML形式でクリック可能なリンクに変換
 
-### 2024年12月
-- **環境構築・プロジェクト基盤整備完了**
-  - Poetry + pyenv + direnv環境構築
-  - プロジェクト文書化
-  - Cursor Editor用ルール作成
-  - Git管理設定完了
-- **Slack API接続確認プログラム実装・動作確認**
-  - src/slack_checker.py, src/config/settings.py 作成
-  - Slack API から最新メッセージ取得・表示
-  - コマンドライン引数・環境変数の優先順位対応
-- **Workspace ID取得ツール実装・動作確認**
-  - scripts/get_workspace_id.py 作成
-  - Bot Tokenを使用したWorkspace ID自動取得機能
-  - auth.test APIによるWorkspace情報取得
-  - 実際のWorkspace ID取得・動作確認完了
-- **プロジェクト簡素化・設定最適化**
-  - SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
-  - env.example, README.md, 開発ガイドライン更新
-  - 実際のWorkspace ID（T02A6KL7S）設定完了
-  - 設定の簡素化・セキュリティ向上
-- **チャネル一覧取得ツール実装・動作確認**
-  - scripts/get_channels.py 作成
-  - conversations.list APIによるチャネル一覧取得機能
-  - テーブル形式・JSON形式での出力対応
-  - チャネル名での検索機能実装
-  - エラーハンドリング・詳細ログ出力機能
-  - 実際のワークスペースで72件のチャネル取得成功
-- **絵文字置換機能・HTMLフィルターパイプライン実装**
-  - src/utils/emoji_resolver.py 作成
-  - Slack API emoji.listによる絵文字一覧取得
-  - 絵文字キーワード（:emoji:）を画像URLに置換
-  - 内部キャッシュ機能（TTL制御）
-  - テストツール（scripts/test_emoji_resolver.py）の実装
-  - モジュラーなHTMLフィルターパイプライン設計
-  - bleachライブラリによる安全なHTMLサニタイズ
-  - フィルター処理順序の最適化（絵文字置換 → 改行処理 → サニタイズ）
-  - 拡張可能なフィルターパイプライン基盤構築
-  - 実際のHTML出力で絵文字表示・改行処理・安全なサニタイズを確認
-- **プロジェクト簡素化**
+### 絵文字置換機能・HTMLフィルターパイプライン実装
+- src/utils/emoji_resolver.py 作成
+- Slack API emoji.listによる絵文字一覧取得
+- 絵文字キーワード（:emoji:）を画像URLに置換
+- 内部キャッシュ機能（TTL制御）
+- テストツール（scripts/test_emoji_resolver.py）の実装
+- モジュラーなHTMLフィルターパイプライン設計
+- bleachライブラリによる安全なHTMLサニタイズ
+- フィルター処理順序の最適化（絵文字置換 → URL変換 → 改行処理 → サニタイズ）
+- 拡張可能なフィルターパイプライン基盤構築
+- 実際のHTML出力で絵文字表示・URL変換・改行処理・安全なサニタイズを確認
+
+### プロジェクト簡素化
 
 ## 今後の残件・改善予定
-- メッセージ中の絵文字（アイコン）を適切に表示する機能
-- 改行などのHTMLタグを適切に処理する機能
-- URLリンクを適切に処理する機能
+- [x] メッセージ中の絵文字（アイコン）を適切に表示する機能
+- [x] 改行などのHTMLタグを適切に処理する機能
+- [x] URLリンクを適切に処理する機能
+- [ ] 次のバグ修正（段階的に対応予定）
 
 ---
 
 **最終更新**: 2024年12月  
-**次のマイルストーン**: Phase 1基本機能実装（HTML出力・データ処理） 
+**次のマイルストーン**: 次のバグ修正の実施 

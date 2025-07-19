@@ -184,6 +184,33 @@ while response.get("response_metadata", {}).get("next_cursor"):
     channels.extend(response.get("channels", []))
 ```
 
+## メッセージテキスト処理
+
+### URL形式
+Slack APIから取得されるメッセージでは、URLは以下の形式で返されます：
+
+#### 基本的なURL形式
+- `<http://example.com>` - 基本的なURL
+- `<https://example.com/path>` - HTTPS URL
+
+#### 表示テキスト付きURL形式
+- `<http://example.com|表示テキスト>` - カスタム表示テキスト付きURL
+
+#### 処理方法
+プロジェクトでは、これらのURL形式をHTMLの`<a>`タグに変換します：
+
+```python
+# Slack API形式: <http://example.com>
+# 変換後: <a href="http://example.com" target="_blank">http://example.com</a>
+
+# Slack API形式: <http://example.com|表示テキスト>
+# 変換後: <a href="http://example.com" target="_blank">表示テキスト</a>
+```
+
+### 絵文字形式
+- `:emoji_name:` - 絵文字キーワード
+- プロジェクトでは、絵文字キーワードを画像URLに置換します
+
 ## メッセージオブジェクト構造
 
 ### 基本的なメッセージオブジェクト
@@ -191,7 +218,7 @@ while response.get("response_metadata", {}).get("next_cursor"):
 {
   "type": "message",
   "user": "U1234567890",
-  "text": "こんにちは！",
+  "text": "こんにちは！<http://example.com> :smile:",
   "ts": "1705312225.123456",
   "thread_ts": "1705312225.123456",
   "reply_count": 2,
