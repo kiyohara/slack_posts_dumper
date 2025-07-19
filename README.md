@@ -13,6 +13,7 @@
 - **HTMLフィルターパイプライン** - モジュラーなフィルター設計による安全なHTML処理
 - **ローカルアセット管理** - 絵文字やアバター画像をローカルにダウンロードしてオフライン表示
 - **統合されたレンダラー** - 通常モードとローカルモードを1つのレンダラーで統一的に処理
+- **Unicodeフォールバック機能** - ダウンロードに失敗した標準絵文字をUnicodeに変換して表示
 
 ### 技術要件
 - Slack APIを使用したデータ取得
@@ -24,6 +25,7 @@
 - **アセット管理システム** - URLハッシュベースのローカルファイル管理
 - **アセットダウンロード機能** - Slackアセットの自動ダウンロードとキャッシュ
 - **統合フィルターパイプライン** - 絵文字置換とローカルパス置換の統合処理
+- **emojiライブラリ統合** - 絵文字のshortnameをUnicodeに変換する機能
 
 ## 開発環境
 - Cursor Editor
@@ -135,6 +137,7 @@
 # SLACK_CHANNEL_ID=C1234567890
 # 
 # 注意: emoji:read権限が必要です（絵文字置換機能用）
+# 注意: emojiライブラリが追加されました（Unicodeフォールバック機能用）
    ```
 
 ## 使い方
@@ -152,17 +155,34 @@ poetry run python scripts/test_emoji_resolver.py --emoji slightly_smiling_face
 
 # テキスト置換テスト
 poetry run python scripts/test_emoji_resolver.py --text "こんにちは :slightly_smiling_face: 今日は良い天気ですね :sunny:"
+
+# Unicodeフォールバック機能テスト
+poetry run python scripts/test_emoji_resolver_unicode.py
+
+# emojiライブラリテスト
+poetry run python scripts/test_emoji_library.py
 ```
 
 ### HTMLフィルターパイプライン
 
 HTMLフィルターパイプラインは以下の順序で処理されます：
 
-1. **絵文字置換** - `:emoji:` → `<img>`タグ
+1. **絵文字置換** - `:emoji:` → `<img>`タグ（ダウンロード失敗時はUnicodeに変換）
 2. **URL変換** - `<http://example.com>` → `<a href="...">`タグ
 3. **改行処理** - `\n` → `<br>`タグ
 4. **HTMLサニタイズ** - 許可されたタグのみ残す
-5. **安全出力** - HTMLとして出力
+5. **ローカルアセット置換** - ダウンロード済みアセットのURLをローカルパスに置換
+6. **安全出力** - HTMLとして出力
+
+### Unicodeフォールバック機能
+
+ダウンロードに失敗した標準絵文字に対して、以下の処理を行います：
+
+1. **ダウンロード成功**: ローカルパス（`assets/xxx.png`）を使用
+2. **ダウンロード失敗（標準絵文字）**: Unicode絵文字（`🙂`）に変換
+3. **ダウンロード失敗（カスタム絵文字）**: 元のURLをそのまま表示
+
+これにより、Slackの標準絵文字が403エラーでダウンロードに失敗しても、ブラウザのシステムフォントを使用して正しく表示されます。
 
 ### Workspace ID取得ツール
 

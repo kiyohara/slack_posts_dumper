@@ -80,7 +80,7 @@ class SlackMessageHtmlRenderer:
         """絵文字を画像タグに置換（純粋な置換機能）"""
         if not value or not self.emoji_resolver:
             return value
-        return self.emoji_resolver.replace_emojis_in_text(value)
+        return self.emoji_resolver.replace_emojis_in_text(value, asset_manager=self.asset_manager)
     
     def _local_asset_replace_filter(self, value):
         """画像タグのsrcをローカルパスに置換"""
@@ -96,8 +96,8 @@ class SlackMessageHtmlRenderer:
             img_tag = match.group(0)
             src_url = match.group(1)
             
-            # SlackのURLで、ローカルにダウンロード済みの場合のみ置換
-            if self._is_slack_url(src_url) and self.asset_manager.is_downloaded(src_url):
+            # SlackのURLで、ローカルに登録済みの場合のみ置換
+            if self._is_slack_url(src_url) and self.asset_manager.is_registered(src_url):
                 local_path = self.asset_manager.get_local_path(src_url)
                 return img_tag.replace(f'src="{src_url}"', f'src="{local_path}"')
             return img_tag

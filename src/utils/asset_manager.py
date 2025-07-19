@@ -74,6 +74,18 @@ class AssetManager:
         absolute_path = self.get_absolute_path(url)
         return absolute_path.exists()
     
+    def is_registered(self, url: str) -> bool:
+        """
+        アセットがマニフェストに登録済みかチェック（ダウンロード成功・失敗に関係なく）
+        
+        Args:
+            url: アセットのURL
+            
+        Returns:
+            登録済みの場合はTrue
+        """
+        return url in self._manifest
+    
     def register_asset(self, url: str, local_path: str, metadata: Optional[Dict[str, Any]] = None):
         """
         アセット情報をマニフェストに登録

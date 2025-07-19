@@ -4,7 +4,7 @@
 **プロジェクト名**: Slack Posts Dumper  
 **目的**: Slackチャネルの投稿をHTMLとして保存するツール  
 **開始日**: 2024年12月  
-**現在のフェーズ**: 基本機能実装・バグ修正
+**現在のフェーズ**: Unicodeフォールバック機能実装完了
 
 ## 完了済みタスク ✅
 
@@ -101,6 +101,13 @@
     - [x] 個別のURL変換関数を削除し、フィルターパイプラインに統一
     - [x] 動作確認（HTML形式でクリック可能なリンクに変換）
   - [ ] リアクション・添付ファイル等は今後対応
+- [x] Unicodeフォールバック機能実装
+  - [x] emojiライブラリの追加（pyproject.toml）
+  - [x] EmojiResolverの拡張（Unicode変換機能）
+  - [x] AssetManagerの拡張（is_registeredメソッド追加）
+  - [x] MessageRendererの修正（アセットマネージャー連携）
+  - [x] テストツールの作成（test_emoji_library.py, test_emoji_resolver_unicode.py）
+  - [x] 動作確認（ダウンロード失敗時のUnicode変換）
 - [x] プロジェクト簡素化
   - [x] SLACK_USER_TOKEN削除（Bot Tokenのみに統一）
   - [x] env.example, README.md, 開発ガイドライン更新
@@ -148,11 +155,12 @@
   - 添付ファイル、リアクション、スレッド情報の表示
   - エラーハンドリング・詳細ログ出力
   - 動作確認（slack_posts_dumper_testチャンネルで成功）
-- **ローカルアセット管理機能**: 実装完了・動作確認済み
-  - AssetManager: URLハッシュベースのファイル管理
+- **ローカルアセット管理機能**: 実装完了・動作確認済み・Unicodeフォールバック対応
+  - AssetManager: URLハッシュベースのファイル管理（is_registeredメソッド追加）
   - AssetDownloader: Slackアセットの自動ダウンロード
   - 統合されたレンダラー: 通常モード・ローカルモード対応
   - ローカルファイル形式出力（format=local）: 動作確認済み
+  - Unicodeフォールバック機能: ダウンロード失敗時のUnicode変換
 - **ユーザー情報解決ユーティリティ（UserResolver）**: 実装完了
   - ユーザーIDからユーザー情報を取得するユーティリティクラス
   - 内部キャッシュ機能（TTL制御、デフォルト1時間）
@@ -161,11 +169,13 @@
   - その他の情報取得（メールアドレス、チームID、Bot判定、削除判定）
   - テストツール（test_user_resolver.py）の実装
   - 既存スクリプト（get_latest_message.py）への統合
-- **絵文字置換機能（EmojiResolver）**: 実装完了
+- **絵文字置換機能（EmojiResolver）**: 実装完了・Unicodeフォールバック機能追加
   - Slack API emoji.listによる絵文字一覧取得
   - 絵文字キーワード（:emoji:）を画像URLに置換
   - 内部キャッシュ機能（TTL制御）
-  - テストツール（test_emoji_resolver.py）の実装
+  - Unicodeフォールバック機能（emojiライブラリ統合）
+  - ダウンロード失敗時のUnicode変換機能
+  - テストツール（test_emoji_resolver.py, test_emoji_library.py, test_emoji_resolver_unicode.py）の実装
   - 既存スクリプト（get_latest_message.py）への統合
 - **HTMLフィルターパイプライン**: 実装完了
   - モジュラーなフィルター設計
@@ -220,7 +230,9 @@ slack_posts_dumper/
 │   ├── test_emoji_resolver.py   ✅
 │   ├── test_asset_manager.py    ✅
 │   ├── test_asset_downloader.py ✅
-│   └── test_integrated_renderer.py ✅
+│   ├── test_integrated_renderer.py ✅
+│   ├── test_emoji_library.py ✅
+│   └── test_emoji_resolver_unicode.py ✅
 ├── templates/                   ✅
 │   └── message.html             ✅ (ローカルアセット置換フィルター追加)
 └── docs/                        ✅
@@ -260,6 +272,12 @@ slack_posts_dumper/
 - フィルター処理順序の最適化（絵文字置換 → URL変換 → 改行処理 → サニタイズ）
 - 拡張可能なフィルターパイプライン基盤構築
 - 実際のHTML出力で絵文字表示・URL変換・改行処理・安全なサニタイズを確認
+
+### Unicodeフォールバック機能
+- **emojiライブラリ統合**: 絵文字のshortnameをUnicodeに変換する機能
+- **ダウンロード失敗時の処理**: 標準絵文字をUnicodeに変換、カスタム絵文字は元のURLを表示
+- **アセットマネージャー拡張**: is_registeredメソッドでダウンロード成功・失敗に関係なく登録済みアセットを管理
+- **動作確認済み**: ダウンロードに失敗した絵文字がUnicode（🙂）に正しく変換される
 
 ### プロジェクト簡素化
 

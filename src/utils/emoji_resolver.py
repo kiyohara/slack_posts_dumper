@@ -6,6 +6,7 @@ from typing import Dict, Optional, List, Any
 from datetime import datetime, timedelta
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+import emoji
 
 
 class EmojiResolver:
@@ -98,13 +99,15 @@ class EmojiResolver:
         self.logger.debug(f"標準絵文字 '{emoji_name}' のURL: {standard_url}")
         return standard_url
     
-    def replace_emojis_in_text(self, text: str, force_refresh: bool = False) -> str:
+    def replace_emojis_in_text(self, text: str, force_refresh: bool = False, use_unicode_fallback: bool = True, asset_manager=None) -> str:
         """
         テキスト内の絵文字を画像タグに置換
         
         Args:
             text: 置換対象のテキスト
             force_refresh: キャッシュを無視して強制的に再取得するかどうか
+            use_unicode_fallback: ダウンロードに失敗した場合にUnicodeに置き換えるかどうか
+            asset_manager: アセットマネージャー（ダウンロード状況をチェックするため）
         
         Returns:
             絵文字が画像タグに置換されたテキスト
@@ -114,9 +117,37 @@ class EmojiResolver:
             emoji_url = self.get_emoji_url(emoji_name, force_refresh)
             
             if emoji_url:
+                # アセットマネージャーがある場合、ダウンロード状況をチェック
+                if asset_manager and asset_manager.is_registered(emoji_url):
+                    if asset_manager.is_downloaded(emoji_url):
+                        # ダウンロード成功の場合、ローカルパスを使用
+                        local_path = asset_manager.get_local_path(emoji_url)
+                        return f'<img src="{local_path}" alt=":{emoji_name}:" class="slack-emoji" width="20" height="20" style="vertical-align: middle;">'
+                    elif use_unicode_fallback:
+                        # ダウンロード失敗の場合、Unicodeに変換を試行
+                        try:
+                            unicode_emoji = emoji.emojize(f":{emoji_name}:", language='alias')
+                            if unicode_emoji != f":{emoji_name}:":
+                                # 変換成功（標準絵文字の場合）
+                                return unicode_emoji
+                        except Exception as e:
+                            self.logger.debug(f"絵文字 '{emoji_name}' のUnicode変換に失敗: {e}")
+                
+                # アセットマネージャーがない場合や、その他の場合は元のURLを使用
                 return f'<img src="{emoji_url}" alt=":{emoji_name}:" class="slack-emoji" width="20" height="20" style="vertical-align: middle;">'
             else:
-                # URLが見つからない場合は元のテキストをそのまま返す
+                # URLが見つからない場合の処理
+                if use_unicode_fallback:
+                    # emojiライブラリを使用してUnicodeに変換を試行
+                    try:
+                        unicode_emoji = emoji.emojize(f":{emoji_name}:", language='alias')
+                        if unicode_emoji != f":{emoji_name}:":
+                            # 変換成功（標準絵文字の場合）
+                            return unicode_emoji
+                    except Exception as e:
+                        self.logger.debug(f"絵文字 '{emoji_name}' のUnicode変換に失敗: {e}")
+                
+                # Unicode変換に失敗した場合やカスタム絵文字の場合は元のテキストをそのまま返す
                 return match.group(0)
         
         # 絵文字パターンを検索して置換

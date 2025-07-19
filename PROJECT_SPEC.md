@@ -22,7 +22,7 @@ Slackチャネルの投稿をHTML形式で保存するツール
   - `channels:read` - チャネル情報を読み取り
   - `users:read` - ユーザー情報を読み取り
   - `files:read` - ファイル情報を読み取り（添付ファイル対応）
-  - `emoji:read` - 絵文字情報を読み取り
+  - `emoji:read` - 絵文字情報を読み取り（Unicodeフォールバック機能用）
 - **ユーザー情報解決ユーティリティ（UserResolver）**
   - ユーザーIDからユーザー情報を取得
   - 内部キャッシュ機能（TTL制御）
@@ -100,7 +100,7 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - `channels:read` - チャネル情報を読み取り
 - `users:read` - ユーザー情報を読み取り
 - `files:read` - ファイル情報を読み取り
-- `emoji:read` - 絵文字情報を読み取り
+- `emoji:read` - 絵文字情報を読み取り（Unicodeフォールバック機能用）
 
 ### HTMLフィルターパイプライン仕様
 - **処理順序**: 絵文字置換 → ローカルアセット置換 → URL変換 → 改行処理 → HTMLサニタイズ → 安全出力
@@ -108,6 +108,7 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - **安全性**: bleachライブラリによるXSS対策
 - **拡張性**: 新しいフィルターを簡単に追加可能
 - **ローカルアセット置換**: SlackのURLをローカルファイルパスに置換
+- **Unicodeフォールバック機能**: ダウンロードに失敗した標準絵文字をUnicodeに変換
 
 ## ファイル構成（2024年6月時点・現状）
 ```
@@ -133,7 +134,9 @@ Slackチャネルの投稿をHTML形式で保存するツール
 │   ├── test_emoji_resolver.py     # EmojiResolverテストツール
 │   ├── test_asset_manager.py      # AssetManagerテストツール
 │   ├── test_asset_downloader.py   # AssetDownloaderテストツール
-│   └── test_integrated_renderer.py # 統合レンダラーテストツール
+│   ├── test_integrated_renderer.py # 統合レンダラーテストツール
+│   ├── test_emoji_library.py      # emojiライブラリテストツール
+│   └── test_emoji_resolver_unicode.py # Unicodeフォールバック機能テストツール
 ├── src/                           # Pythonパッケージ本体
 │   ├── __init__.py                # パッケージ初期化
 │   ├── config/                    # 設定管理モジュール
@@ -264,6 +267,8 @@ Slackチャネルの投稿をHTML形式で保存するツール
 - ✅ アセットダウンロード機能（AssetDownloader）
 - ✅ 統合されたレンダラー（通常モード・ローカルモード）
 - ✅ ローカルファイル形式出力（format=local）
+- ✅ Unicodeフォールバック機能（emojiライブラリ統合）
+- ✅ アセットマネージャーの拡張（is_registeredメソッド追加）
 
 ### 動作確認済み環境
 - **Workspace**: 設定済み

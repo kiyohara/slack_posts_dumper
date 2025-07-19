@@ -36,6 +36,12 @@ class AssetDownloader:
         self.session.headers.update({
             'User-Agent': 'SlackPostsDumper/1.0'
         })
+        
+        # Bot Tokenを使用して認証ヘッダーを設定
+        if hasattr(client, 'token') and client.token:
+            self.session.headers.update({
+                'Authorization': f'Bearer {client.token}'
+            })
     
     def download_asset(self, url: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
@@ -93,7 +99,13 @@ class AssetDownloader:
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"アセットのダウンロードに失敗: {url}, エラー: {e}")
-            return False
+            # ダウンロードに失敗した場合でも、ローカルパスを生成してアセットマネージャーに登録
+            # これにより、ダウンロードに失敗したアセットでもローカルパス置換が可能になる
+            local_path = self.asset_manager.get_local_path(url)
+            self.asset_manager.register_asset(url, local_path, metadata)
+            self._downloaded_urls.add(url)
+            self.logger.info(f"ダウンロード失敗だがローカルパスを登録: {url} -> {local_path}")
+            return True
         except Exception as e:
             self.logger.error(f"アセットの保存に失敗: {url}, エラー: {e}")
             return False
@@ -130,17 +142,23 @@ class AssetDownloader:
             except Exception as e:
                 self.logger.warning(f"ユーザーアバターのダウンロードに失敗: {e}")
         
-        # メッセージテキストから絵文字URLを抽出してダウンロード
+        # メッセージテキストから絵文字名を抽出してダウンロード
         text = message.get("text", "")
-        emoji_urls = self._extract_emoji_urls_from_text(text)
-        for emoji_url in emoji_urls:
-            success = self.download_asset(
-                emoji_url, 
-                metadata={"type": "emoji", "source": "message_text"}
-            )
-            if success:
-                local_path = self.asset_manager.get_local_path(emoji_url)
-                downloaded_paths.append(local_path)
+        emoji_names = self._extract_emoji_names_from_text(text)
+        for emoji_name in emoji_names:
+            try:
+                # 絵文字のURLを取得
+                emoji_url = self._get_emoji_url(emoji_name)
+                if emoji_url:
+                    success = self.download_asset(
+                        emoji_url, 
+                        metadata={"type": "emoji", "name": emoji_name, "source": "message_text"}
+                    )
+                    if success:
+                        local_path = self.asset_manager.get_local_path(emoji_url)
+                        downloaded_paths.append(local_path)
+            except Exception as e:
+                self.logger.warning(f"絵文字 '{emoji_name}' のダウンロードに失敗: {e}")
         
         # 添付ファイルのアセットをダウンロード
         files = message.get("files", [])
@@ -219,6 +237,25 @@ class AssetDownloader:
         parsed = urlparse(url)
         return any(domain in parsed.netloc for domain in slack_domains)
     
+    def _extract_emoji_names_from_text(self, text: str) -> List[str]:
+        """
+        テキストから絵文字名を抽出
+        
+        Args:
+            text: 抽出対象のテキスト
+            
+        Returns:
+            絵文字名のリスト（:を除いた形式）
+        """
+        emoji_names = []
+        
+        # :emoji_name: 形式の絵文字を抽出
+        emoji_pattern = r':([a-zA-Z0-9_+-]+):'
+        emoji_matches = re.findall(emoji_pattern, text)
+        emoji_names.extend(emoji_matches)
+        
+        return emoji_names
+    
     def _extract_emoji_urls_from_text(self, text: str) -> List[str]:
         """
         テキストから絵文字URLを抽出
@@ -259,9 +296,26 @@ class AssetDownloader:
                 if emoji_name in emoji_data:
                     return emoji_data[emoji_name]
                 
-                # 標準絵文字の場合はSlackの標準URLを返す
-                standard_url = f"https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/{emoji_name}.png"
-                return standard_url
+                # 標準絵文字の場合は認証なしでもアクセス可能なURLを試行
+                # 複数のURLパターンを試す
+                standard_urls = [
+                    f"https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-medium/{emoji_name}.png",
+                    f"https://a.slack-edge.com/production-standard-emoji-assets/14.0/google-medium/{emoji_name}.png",
+                    f"https://a.slack-edge.com/production-standard-emoji-assets/14.0/twitter-medium/{emoji_name}.png",
+                    f"https://a.slack-edge.com/production-standard-emoji-assets/14.0/apple-large/{emoji_name}.png"
+                ]
+                
+                # 最初に見つかった有効なURLを返す
+                for url in standard_urls:
+                    try:
+                        response = self.session.head(url, timeout=5)
+                        if response.status_code == 200:
+                            return url
+                    except:
+                        continue
+                
+                # どのURLもアクセスできない場合は最初のURLを返す（ダウンロード時にエラーハンドリング）
+                return standard_urls[0]
             
         except SlackApiError as e:
             self.logger.warning(f"絵文字一覧の取得に失敗: {e}")

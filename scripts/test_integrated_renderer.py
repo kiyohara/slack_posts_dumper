@@ -127,6 +127,23 @@ def test_integrated_renderer():
         # 絵文字URLがローカルパスに置換されているかチェック
         emoji_local_path = asset_manager.get_local_path(test_emoji_url)
         
+        print(f"  絵文字URL: {test_emoji_url}")
+        print(f"  絵文字ローカルパス: {emoji_local_path}")
+        print(f"  絵文字がダウンロード済み: {asset_manager.is_downloaded(test_emoji_url)}")
+        print(f"  元のURLがHTMLに含まれている: {test_emoji_url in html_local}")
+        print(f"  ローカルパスがHTMLに含まれている: {emoji_local_path in html_local}")
+        
+        # HTMLの内容を詳しく確認
+        if test_emoji_url in html_local:
+            print(f"  問題: 元の絵文字URLが残っています")
+            # HTMLから絵文字のimgタグを探す
+            import re
+            img_pattern = r'<img[^>]+src="[^"]*"[^>]*>'
+            img_tags = re.findall(img_pattern, html_local)
+            print(f"  見つかったimgタグ数: {len(img_tags)}")
+            for i, tag in enumerate(img_tags):
+                print(f"    {i+1}: {tag}")
+        
         # 元のURLが含まれていないことを確認
         assert test_emoji_url not in html_local, "元の絵文字URLが残っています"
         
