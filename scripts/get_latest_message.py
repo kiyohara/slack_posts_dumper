@@ -51,6 +51,9 @@ def parse_arguments():
 
   # JSON形式で出力
   python scripts/get_latest_message.py --format json
+
+  # ローカルファイル形式で出力（アセットをダウンロード）
+  python scripts/get_latest_message.py --format local --output-dir ./output
         """
     )
     
@@ -77,9 +80,14 @@ def parse_arguments():
     
     parser.add_argument(
         '--format',
-        choices=['human', 'json', 'html'],
+        choices=['human', 'json', 'html', 'local'],
         default='human',
         help='出力形式（デフォルト: human）'
+    )
+    
+    parser.add_argument(
+        '--output-dir',
+        help='ローカルファイル出力先ディレクトリ（format=localの場合に使用）'
     )
     
     return parser.parse_args()
@@ -294,6 +302,44 @@ def main():
             emoji_resolver = create_emoji_resolver(client)
             renderer = SlackMessageHtmlRenderer(emoji_resolver=emoji_resolver)
             html = renderer.render(message, user_resolver)
+            print(html)
+        elif args.format == 'local':
+            # ローカルファイル形式で出力
+            if not args.output_dir:
+                raise ValueError("format=localの場合は--output-dirオプションが必要です")
+            
+            # 必要なインポート
+            from src.utils.asset_manager import AssetManager
+            from src.utils.asset_downloader import AssetDownloader
+            from src.utils.local_renderer import LocalMessageRenderer
+            
+            # アセット管理とダウンロード機能を初期化
+            asset_manager = AssetManager(args.output_dir)
+            client = WebClient(token=bot_token)
+            user_resolver = create_user_resolver(client)
+            emoji_resolver = create_emoji_resolver(client)
+            downloader = AssetDownloader(client, asset_manager)
+            
+            # アセットをダウンロード
+            if args.verbose:
+                print("アセットをダウンロード中...")
+            downloaded_paths = downloader.download_assets_from_message(message, user_resolver)
+            
+            # ローカルファイル参照でHTMLを生成
+            renderer = LocalMessageRenderer(asset_manager, emoji_resolver=emoji_resolver)
+            html = renderer.render(message, user_resolver)
+            
+            # HTMLファイルを保存
+            html_file_path = Path(args.output_dir) / "message.html"
+            with open(html_file_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            
+            # 結果を出力
+            if args.verbose:
+                print(f"ダウンロードしたアセット数: {len(downloaded_paths)}")
+                print(f"HTMLファイル: {html_file_path}")
+                print(f"アセットディレクトリ: {asset_manager.assets_dir}")
+            
             print(html)
         else:
             print(format_message_human(message))
