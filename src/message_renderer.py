@@ -11,7 +11,7 @@ class SlackMessageHtmlRenderer:
     Slack APIから得た1件のメッセージをHTML化するユーティリティクラス。
     ユーザーのアバター・名前・投稿時刻・本文をSlack風に出力する。
     """
-    def __init__(self, template_dir: Optional[str] = None, emoji_resolver=None):
+    def __init__(self, template_dir: Optional[str] = None, emoji_resolver=None, asset_manager=None):
         if template_dir is None:
             # プロジェクトのtemplatesディレクトリを自動検出
             project_root = Path(__file__).parent.parent
@@ -23,10 +23,12 @@ class SlackMessageHtmlRenderer:
         self.env.filters['slack_time'] = self._slack_time_filter
         self.env.filters['nl2br'] = self._nl2br_filter
         self.env.filters['emoji_replace'] = self._emoji_replace_filter
+        self.env.filters['local_asset_replace'] = self._local_asset_replace_filter
         self.env.filters['url_replace'] = self._url_replace_filter
         self.env.filters['sanitize_html'] = self._html_escape_filter
         self.template = self.env.get_template("message.html")
         self.emoji_resolver = emoji_resolver
+        self.asset_manager = asset_manager
 
     def render(self, message: Dict[str, Any], user_resolver) -> str:
         """
@@ -41,6 +43,19 @@ class SlackMessageHtmlRenderer:
         user = user_resolver.get_user_info(user_id) if user_id else {}
         if user is None:
             user = {}
+        
+        # アセットマネージャーがある場合、ユーザーアバターのURLをローカルパスに置換
+        if self.asset_manager and user and "profile" in user:
+            profile = user["profile"]
+            avatar_url = profile.get("image_72")
+            if avatar_url and self.asset_manager.is_downloaded(avatar_url):
+                local_avatar_path = self.asset_manager.get_local_path(avatar_url)
+                # ユーザー情報のコピーを作成してアバターURLを置換
+                user_copy = user.copy()
+                user_copy["profile"] = profile.copy()
+                user_copy["profile"]["image_72"] = local_avatar_path
+                user = user_copy
+        
         return self.template.render(message=message, user=user)
 
     @staticmethod
@@ -66,6 +81,42 @@ class SlackMessageHtmlRenderer:
         if not value or not self.emoji_resolver:
             return value
         return self.emoji_resolver.replace_emojis_in_text(value)
+    
+    def _local_asset_replace_filter(self, value):
+        """画像タグのsrcをローカルパスに置換"""
+        if not value or not self.asset_manager:
+            return value
+        
+        import re
+        
+        # <img src="..." alt="..."> 形式の画像タグを検索
+        img_pattern = r'<img[^>]+src="([^"]+)"[^>]*>'
+        
+        def replace_src(match):
+            img_tag = match.group(0)
+            src_url = match.group(1)
+            
+            # SlackのURLで、ローカルにダウンロード済みの場合のみ置換
+            if self._is_slack_url(src_url) and self.asset_manager.is_downloaded(src_url):
+                local_path = self.asset_manager.get_local_path(src_url)
+                return img_tag.replace(f'src="{src_url}"', f'src="{local_path}"')
+            return img_tag
+        
+        return re.sub(img_pattern, replace_src, value)
+    
+    def _is_slack_url(self, url: str) -> bool:
+        """URLがSlackのドメインかチェック"""
+        from urllib.parse import urlparse
+        
+        slack_domains = [
+            'slack-edge.com',
+            'files.slack.com',
+            'emoji.slack-edge.com',
+            'a.slack-edge.com'
+        ]
+        
+        parsed = urlparse(url)
+        return any(domain in parsed.netloc for domain in slack_domains)
     
     @staticmethod
     def _url_replace_filter(value):

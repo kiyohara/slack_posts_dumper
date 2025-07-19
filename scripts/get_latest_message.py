@@ -311,7 +311,6 @@ def main():
             # 必要なインポート
             from src.utils.asset_manager import AssetManager
             from src.utils.asset_downloader import AssetDownloader
-            from src.utils.local_renderer import LocalMessageRenderer
             
             # アセット管理とダウンロード機能を初期化
             asset_manager = AssetManager(args.output_dir)
@@ -325,8 +324,8 @@ def main():
                 print("アセットをダウンロード中...")
             downloaded_paths = downloader.download_assets_from_message(message, user_resolver)
             
-            # ローカルファイル参照でHTMLを生成
-            renderer = LocalMessageRenderer(asset_manager, emoji_resolver=emoji_resolver)
+            # 統合されたレンダラーでHTMLを生成
+            renderer = SlackMessageHtmlRenderer(emoji_resolver=emoji_resolver, asset_manager=asset_manager)
             html = renderer.render(message, user_resolver)
             
             # HTMLファイルを保存

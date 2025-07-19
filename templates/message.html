@@ -1,6 +1,6 @@
 <div class="slack-message">
   <div class="slack-message__avatar">
-    <img src="{{ user.profile.image_72 }}" alt="avatar" width="48" height="48" class="slack-avatar">
+    <img src="{{ user.profile.image_72 | local_asset_replace }}" alt="avatar" width="48" height="48" class="slack-avatar">
   </div>
   <div class="slack-message__content">
     <div class="slack-message__header">
@@ -8,7 +8,7 @@
       <span class="slack-message__timestamp">{{ message.ts | slack_time }}</span>
     </div>
     <div class="slack-message__body">
-      {{ message.text | emoji_replace | url_replace | nl2br | sanitize_html | safe }}
+      {{ message.text | emoji_replace | local_asset_replace | url_replace | nl2br | sanitize_html | safe }}
     </div>
     {# 今はリアクション・絵文字・添付ファイル等は未対応 #}
   </div>
