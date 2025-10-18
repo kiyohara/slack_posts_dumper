@@ -293,7 +293,7 @@ slack_posts_dumper/
 - **動作確認済み**: ダウンロードに失敗した絵文字がUnicode（🙂）に正しく変換される
 
 ### 日時表示フォーマットの改善
-- `message_renderer.py` の `slack_time` フィルターで年月日を含む形式に拡張
+- `message_renderer.py` の `slack_time` フィルターで年月日を含む形式（タイムゾーンなし）に拡張
 - HTML出力のタイムスタンプが日付・時刻の両方を表示するように調整
 
 ### プロジェクト簡素化
