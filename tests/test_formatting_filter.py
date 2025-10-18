@@ -55,3 +55,29 @@ def test_formatting_filter_ignores_markers_inside_code(renderer):
     assert "`*code bold*`" in formatted
     assert "```\n_some code_\n```" in formatted
     assert "<strong>bold</strong>" in formatted
+
+
+def test_render_pipeline_preserves_links_after_markup(renderer):
+    class DummyUserResolver:
+        def get_user_info(self, user_id):
+            return {
+                "profile": {"image_72": "https://example.com/avatar.png"},
+                "display_name": "Tester",
+            }
+
+        def get_user_display_name(self, user_id, force_refresh: bool = False):
+            return "Tester"
+
+    message = {
+        "user": "U123",
+        "ts": "1710000000.0",
+        "text": "<@U123> check _updates_ at <http://example.com/some_path>.",
+    }
+
+    html = renderer.render(message, user_resolver=DummyUserResolver())
+
+    assert "@Tester" in html
+    assert "<em>updates</em>" in html
+    assert 'href="http://example.com/some_path"' in html
+    assert 'target="_blank"' in html
+    assert "<em>http://example.com/some_path</em>" not in html
