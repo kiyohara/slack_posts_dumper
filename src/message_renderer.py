@@ -80,11 +80,11 @@ class SlackMessageHtmlRenderer:
 
     @staticmethod
     def _slack_time_filter(ts):
-        """Slackのts(float/str)を人間が読みやすい時刻に変換"""
+        """Slackのts(float/str)を人間が読みやすい日時に変換"""
         try:
             ts = float(ts)
             dt = datetime.fromtimestamp(ts)
-            return dt.strftime('%H:%M')
+            return dt.strftime('%Y-%m-%d %H:%M')
         except Exception:
             return str(ts)
 

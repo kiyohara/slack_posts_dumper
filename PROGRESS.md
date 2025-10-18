@@ -103,10 +103,11 @@
 - [ ] リアクション・添付ファイル等は今後対応
 - [x] メンション表示名対応
   - [x] UserResolver による Display name 取得機構の再確認・整備
-  - [x] MentionResolver ユーティリティの新規追加（HTMLエスケープ + キャッシュ）
-  - [x] message_renderer.py のフィルターパイプラインへメンション置換を組み込み
-  - [x] templates/message.html のフィルターチェーンを更新（mention → emoji → assets → URL → 改行 → サニタイズ）
-  - [x] scripts/test_integrated_renderer.py にメンション変換の検証ケースを追加
+- [x] MentionResolver ユーティリティの新規追加（HTMLエスケープ + キャッシュ）
+- [x] message_renderer.py のフィルターパイプラインへメンション置換を組み込み
+- [x] templates/message.html のフィルターチェーンを更新（mention → emoji → assets → URL → 改行 → サニタイズ）
+- [x] scripts/test_integrated_renderer.py にメンション変換の検証ケースを追加
+- [x] レビュー指摘対応: display name 太字化の記載と検証テストを整備
 - [x] Unicodeフォールバック機能実装
   - [x] emojiライブラリの追加（pyproject.toml）
   - [x] EmojiResolverの拡張（Unicode変換機能）
@@ -291,6 +292,10 @@ slack_posts_dumper/
 - **アセットマネージャー拡張**: is_registeredメソッドでダウンロード成功・失敗に関係なく登録済みアセットを管理
 - **動作確認済み**: ダウンロードに失敗した絵文字がUnicode（🙂）に正しく変換される
 
+### 日時表示フォーマットの改善
+- `message_renderer.py` の `slack_time` フィルターで年月日を含む形式（タイムゾーンなし）に拡張
+- HTML出力のタイムスタンプが日付・時刻の両方を表示するように調整
+
 ### プロジェクト簡素化
 
 ## 今後の残件・改善予定
@@ -304,7 +309,7 @@ slack_posts_dumper/
 - [ ] スレッド書き込みへの対応 — 親子メッセージと `conversations.replies` の結果を統合し、テンプレートで階層表示できるデータ構造・テスト・カーソル管理を構築する
 - [ ] 添付ファイル表示の強化 — ファイル種別ごとにレンダリングを分岐し、`AssetManager` 拡張によるローカル保存とメタデータ表示、期限切れ時フォールバックを実装する
 - [x] 文字装飾レンダリングの充実 — Slackマークアップ（太字・斜体・打消し・コード等）をHTMLへ正規化するフィルターと回帰テストを追加し、サニタイズポリシーと整合させる
-- [ ] 日時表示フォーマットの改善 — `slack_time` フィルターを年月日・タイムゾーンを含むフォーマットへ拡張し、ローカライズ設定とテストケースを整備する
+- [x] 日時表示フォーマットの改善 — `slack_time` フィルターを年月日・タイムゾーンを含むフォーマットへ拡張し、ローカライズ設定とテストケースを整備する
 - [ ] 次のバグ修正（段階的に対応予定）
 - [ ] ユーザーグループ・チャンネルメンション（<!subteam^...>, <#C...>) など特殊記法の変換
 - [ ] API依存のユニットテスト改善（slack_sdk / requests / emoji の依存解消）
