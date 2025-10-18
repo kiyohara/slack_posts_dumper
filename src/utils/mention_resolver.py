@@ -31,7 +31,7 @@ class MentionResolver:
         def replace(match: re.Match) -> str:
             user_id = match.group(1)
             display_name = self._get_display_name(user_id)
-            return f"@{html.escape(display_name)}"
+            return f"<strong>@{html.escape(display_name)}</strong>"
 
         return self.USER_MENTION_PATTERN.sub(replace, text)
 
