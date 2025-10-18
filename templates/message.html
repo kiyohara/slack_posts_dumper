@@ -8,7 +8,7 @@
       <span class="slack-message__timestamp">{{ message.ts | slack_time }}</span>
     </div>
     <div class="slack-message__body">
-      {{ message.text | emoji_replace | local_asset_replace | url_replace | nl2br | sanitize_html | safe }}
+      {{ message.text | mention_replace | emoji_replace | local_asset_replace | url_replace | nl2br | sanitize_html | safe }}
     </div>
     {# 今はリアクション・絵文字・添付ファイル等は未対応 #}
   </div>

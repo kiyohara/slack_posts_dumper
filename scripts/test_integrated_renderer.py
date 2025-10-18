@@ -48,7 +48,7 @@ def test_integrated_renderer():
         # テスト用メッセージ
         test_message = {
             "user": "U1234567890",
-            "text": "こんにちは！:smile: 素晴らしいですね:custom:",
+            "text": "<@U1234567890> こんにちは！:smile: 素晴らしいですね:custom:",
             "ts": "1234567890.123456"
         }
         
@@ -60,15 +60,18 @@ def test_integrated_renderer():
                 "image_72": test_avatar_url
             }
         }
+        mock_user_resolver.get_user_display_name.return_value = "テストユーザー"
         
         # HTMLをレンダリング（通常モード）
         html_normal = normal_renderer.render(test_message, mock_user_resolver)
         print("  通常モードのHTML（一部）:")
         print(f"    {html_normal[:200]}...")
-        
+
         # 通常モードではローカルパスが含まれていないことを確認
         avatar_local_path = asset_manager.get_local_path(test_avatar_url)
         assert avatar_local_path not in html_normal, "通常モードでローカルパスが含まれています"
+        assert "@テストユーザー" in html_normal, "メンションが表示名に変換されていません"
+        assert "U1234567890" not in html_normal, "ユーザーIDがそのまま残っています"
         
         print("  ✅ 通常モードテスト成功")
         

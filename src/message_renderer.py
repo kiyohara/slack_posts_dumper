@@ -2,9 +2,10 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Dict, Any, Optional
 from datetime import datetime
-import html
 import bleach
 import re
+
+from src.utils.mention_resolver import MentionResolver
 
 class SlackMessageHtmlRenderer:
     """
@@ -22,6 +23,7 @@ class SlackMessageHtmlRenderer:
         )
         self.env.filters['slack_time'] = self._slack_time_filter
         self.env.filters['nl2br'] = self._nl2br_filter
+        self.env.filters['mention_replace'] = self._mention_replace_filter
         self.env.filters['emoji_replace'] = self._emoji_replace_filter
         self.env.filters['local_asset_replace'] = self._local_asset_replace_filter
         self.env.filters['url_replace'] = self._url_replace_filter
@@ -29,6 +31,7 @@ class SlackMessageHtmlRenderer:
         self.template = self.env.get_template("message.html")
         self.emoji_resolver = emoji_resolver
         self.asset_manager = asset_manager
+        self._current_mention_resolver: Optional[MentionResolver] = None
 
     def render(self, message: Dict[str, Any], user_resolver) -> str:
         """
@@ -43,7 +46,12 @@ class SlackMessageHtmlRenderer:
         user = user_resolver.get_user_info(user_id) if user_id else {}
         if user is None:
             user = {}
-        
+
+        if user_resolver:
+            self._current_mention_resolver = MentionResolver(user_resolver)
+        else:
+            self._current_mention_resolver = None
+
         # アセットマネージャーがある場合、ユーザーアバターのURLをローカルパスに置換
         if self.asset_manager and user and "profile" in user:
             profile = user["profile"]
@@ -56,7 +64,10 @@ class SlackMessageHtmlRenderer:
                 user_copy["profile"]["image_72"] = local_avatar_path
                 user = user_copy
         
-        return self.template.render(message=message, user=user)
+        try:
+            return self.template.render(message=message, user=user)
+        finally:
+            self._current_mention_resolver = None
 
     @staticmethod
     def _slack_time_filter(ts):
@@ -161,7 +172,7 @@ class SlackMessageHtmlRenderer:
             'code': [],
             'pre': [],
         }
-        
+
         # bleachを使用してHTMLサニタイズ
         cleaned_html = bleach.clean(
             value,
@@ -169,5 +180,11 @@ class SlackMessageHtmlRenderer:
             attributes=allowed_attributes,
             strip=True
         )
-        
-        return cleaned_html 
+
+        return cleaned_html
+
+    def _mention_replace_filter(self, value):
+        """ユーザーメンションを表示名に変換"""
+        if not value or not self._current_mention_resolver:
+            return value
+        return self._current_mention_resolver.replace_user_mentions(value)
