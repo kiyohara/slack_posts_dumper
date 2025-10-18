@@ -100,7 +100,13 @@
     - [x] フィルターパイプラインへの統合（emoji_replace → url_replace → nl2br → sanitize_html → safe）
     - [x] 個別のURL変換関数を削除し、フィルターパイプラインに統一
     - [x] 動作確認（HTML形式でクリック可能なリンクに変換）
-  - [ ] リアクション・添付ファイル等は今後対応
+- [ ] リアクション・添付ファイル等は今後対応
+- [x] メンション表示名対応
+  - [x] UserResolver による Display name 取得機構の再確認・整備
+  - [x] MentionResolver ユーティリティの新規追加（HTMLエスケープ + キャッシュ）
+  - [x] message_renderer.py のフィルターパイプラインへメンション置換を組み込み
+  - [x] templates/message.html のフィルターチェーンを更新（mention → emoji → assets → URL → 改行 → サニタイズ）
+  - [x] scripts/test_integrated_renderer.py にメンション変換の検証ケースを追加
 - [x] Unicodeフォールバック機能実装
   - [x] emojiライブラリの追加（pyproject.toml）
   - [x] EmojiResolverの拡張（Unicode変換機能）
@@ -273,6 +279,12 @@ slack_posts_dumper/
 - 拡張可能なフィルターパイプライン基盤構築
 - 実際のHTML出力で絵文字表示・URL変換・改行処理・安全なサニタイズを確認
 
+### メンション表示名変換
+- MentionResolver ユーティリティで `<@U123>` を表示名に変換
+- Display name の解決に UserResolver のキャッシュを活用
+- HTML エスケープ済みの `@display_name` をフィルターパイプラインに追加
+- 統合レンダラーテストにメンション検証を追加して回帰を防止
+
 ### Unicodeフォールバック機能
 - **emojiライブラリ統合**: 絵文字のshortnameをUnicodeに変換する機能
 - **ダウンロード失敗時の処理**: 標準絵文字をUnicodeに変換、カスタム絵文字は元のURLを表示
@@ -294,8 +306,10 @@ slack_posts_dumper/
 - [ ] 文字装飾レンダリングの充実 — Slackマークアップ（太字・斜体・打消し・コード等）をHTMLへ正規化するフィルターと回帰テストを追加し、サニタイズポリシーと整合させる
 - [ ] 日時表示フォーマットの改善 — `slack_time` フィルターを年月日・タイムゾーンを含むフォーマットへ拡張し、ローカライズ設定とテストケースを整備する
 - [ ] 次のバグ修正（段階的に対応予定）
+- [ ] ユーザーグループ・チャンネルメンション（<!subteam^...>, <#C...>) など特殊記法の変換
+- [ ] API依存のユニットテスト改善（slack_sdk / requests / emoji の依存解消）
 
 ---
 
-**最終更新**: 2024年12月  
-**次のマイルストーン**: 次のバグ修正の実施 
+**最終更新**: 2025年2月
+**次のマイルストーン**: メンション以外の特殊トークン変換とテスト環境整備

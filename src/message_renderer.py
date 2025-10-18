@@ -1,17 +1,24 @@
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Callable
 from datetime import datetime
-import html
 import bleach
 import re
+
+from src.utils.mention_resolver import MentionResolver, SupportsUserDisplayName
 
 class SlackMessageHtmlRenderer:
     """
     Slack APIから得た1件のメッセージをHTML化するユーティリティクラス。
     ユーザーのアバター・名前・投稿時刻・本文をSlack風に出力する。
     """
-    def __init__(self, template_dir: Optional[str] = None, emoji_resolver=None, asset_manager=None):
+    def __init__(
+        self,
+        template_dir: Optional[str] = None,
+        emoji_resolver=None,
+        asset_manager=None,
+        mention_resolver_factory: Optional[Callable[[SupportsUserDisplayName], MentionResolver]] = None,
+    ):
         if template_dir is None:
             # プロジェクトのtemplatesディレクトリを自動検出
             project_root = Path(__file__).parent.parent
@@ -22,6 +29,7 @@ class SlackMessageHtmlRenderer:
         )
         self.env.filters['slack_time'] = self._slack_time_filter
         self.env.filters['nl2br'] = self._nl2br_filter
+        self.env.filters['mention_replace'] = self._mention_replace_filter
         self.env.filters['emoji_replace'] = self._emoji_replace_filter
         self.env.filters['local_asset_replace'] = self._local_asset_replace_filter
         self.env.filters['url_replace'] = self._url_replace_filter
@@ -29,21 +37,32 @@ class SlackMessageHtmlRenderer:
         self.template = self.env.get_template("message.html")
         self.emoji_resolver = emoji_resolver
         self.asset_manager = asset_manager
+        self._mention_resolver_factory = mention_resolver_factory or MentionResolver
+        self._user_resolver: Optional[SupportsUserDisplayName] = None
+        self._mention_resolver: Optional[MentionResolver] = None
 
-    def render(self, message: Dict[str, Any], user_resolver) -> str:
+    def render(self, message: Dict[str, Any], user_resolver: Optional[SupportsUserDisplayName] = None) -> str:
         """
         メッセージとUserResolverからHTMLを生成
         Args:
             message: Slack APIのメッセージdict
-            user_resolver: UserResolverインスタンス
+            user_resolver: UserResolverインスタンス（省略時は前回使用したものを再利用）
         Returns:
             HTML文字列
         """
+        effective_user_resolver = user_resolver or self._user_resolver
+
+        if user_resolver is not None and user_resolver is not self._user_resolver:
+            self._user_resolver = user_resolver
+            self._mention_resolver = self._mention_resolver_factory(user_resolver)
+        elif effective_user_resolver is not None and self._mention_resolver is None:
+            self._mention_resolver = self._mention_resolver_factory(effective_user_resolver)
+
         user_id = message.get("user")
-        user = user_resolver.get_user_info(user_id) if user_id else {}
+        user = effective_user_resolver.get_user_info(user_id) if effective_user_resolver and user_id else {}
         if user is None:
             user = {}
-        
+
         # アセットマネージャーがある場合、ユーザーアバターのURLをローカルパスに置換
         if self.asset_manager and user and "profile" in user:
             profile = user["profile"]
@@ -161,7 +180,7 @@ class SlackMessageHtmlRenderer:
             'code': [],
             'pre': [],
         }
-        
+
         # bleachを使用してHTMLサニタイズ
         cleaned_html = bleach.clean(
             value,
@@ -169,5 +188,11 @@ class SlackMessageHtmlRenderer:
             attributes=allowed_attributes,
             strip=True
         )
-        
-        return cleaned_html 
+
+        return cleaned_html
+
+    def _mention_replace_filter(self, value):
+        """ユーザーメンションを表示名に変換"""
+        if not value or not self._mention_resolver:
+            return value
+        return self._mention_resolver.replace_user_mentions(value)
