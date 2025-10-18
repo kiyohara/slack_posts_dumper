@@ -33,6 +33,7 @@ class SlackMessageHtmlRenderer:
         self.env.filters['emoji_replace'] = self._emoji_replace_filter
         self.env.filters['local_asset_replace'] = self._local_asset_replace_filter
         self.env.filters['url_replace'] = self._url_replace_filter
+        self.env.filters['format_slack_markup'] = self._formatting_filter
         self.env.filters['sanitize_html'] = self._html_escape_filter
         self.template = self.env.get_template("message.html")
         self.emoji_resolver = emoji_resolver
@@ -94,7 +95,36 @@ class SlackMessageHtmlRenderer:
             return ''
         # 改行を<br>に変換
         return value.replace('\n', '<br>')
-    
+
+    @staticmethod
+    def _formatting_filter(value):
+        """Slackのマークダウン風装飾（太字・斜体）をHTMLタグに変換"""
+        if not value:
+            return value
+
+        text = value
+
+        bold_patterns = [
+            re.compile(r'(?<!\\)\*\*(.+?)(?<!\\)\*\*', re.DOTALL),
+            re.compile(r'(?<!\\)__(.+?)(?<!\\)__', re.DOTALL),
+        ]
+
+        italic_patterns = [
+            re.compile(r'(?<!\\)\*(?!\*)(.+?)(?<!\\)\*(?!\*)', re.DOTALL),
+            re.compile(r'(?<!\\)_(.+?)(?<!\\)_', re.DOTALL),
+        ]
+
+        for pattern in bold_patterns:
+            text = pattern.sub(lambda match: f'<strong>{match.group(1)}</strong>', text)
+
+        for pattern in italic_patterns:
+            text = pattern.sub(lambda match: f'<em>{match.group(1)}</em>', text)
+
+        # エスケープされた記号は実体に戻す
+        text = text.replace(r'\*', '*').replace(r'\_', '_')
+
+        return text
+
     def _emoji_replace_filter(self, value):
         """絵文字を画像タグに置換（純粋な置換機能）"""
         if not value or not self.emoji_resolver:
