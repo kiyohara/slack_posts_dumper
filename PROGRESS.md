@@ -103,10 +103,11 @@
 - [ ] リアクション・添付ファイル等は今後対応
 - [x] メンション表示名対応
   - [x] UserResolver による Display name 取得機構の再確認・整備
-  - [x] MentionResolver ユーティリティの新規追加（HTMLエスケープ + キャッシュ）
-  - [x] message_renderer.py のフィルターパイプラインへメンション置換を組み込み
-  - [x] templates/message.html のフィルターチェーンを更新（mention → emoji → assets → URL → 改行 → サニタイズ）
-  - [x] scripts/test_integrated_renderer.py にメンション変換の検証ケースを追加
+- [x] MentionResolver ユーティリティの新規追加（HTMLエスケープ + キャッシュ）
+- [x] message_renderer.py のフィルターパイプラインへメンション置換を組み込み
+- [x] templates/message.html のフィルターチェーンを更新（mention → emoji → assets → URL → 改行 → サニタイズ）
+- [x] scripts/test_integrated_renderer.py にメンション変換の検証ケースを追加
+- [x] レビュー指摘対応: display name 太字化の記載と検証テストを整備
 - [x] Unicodeフォールバック機能実装
   - [x] emojiライブラリの追加（pyproject.toml）
   - [x] EmojiResolverの拡張（Unicode変換機能）
