@@ -835,6 +835,7 @@ DEBUG=False
 ## ドキュメント
 
 ### プロジェクトドキュメント
+- **Repository Guidelines**: `AGENTS.md` - コントリビュータ向けの開発ガイドライン
 - **プロジェクト仕様書**: `PROJECT_SPEC.md` - プロジェクトの詳細仕様
 - **開発進捗**: `PROGRESS.md` - 開発の進捗状況
 - **Slack API リファレンス**: `docs/slack_api_reference.md` - Slack APIの詳細情報
