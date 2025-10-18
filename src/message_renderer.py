@@ -98,32 +98,133 @@ class SlackMessageHtmlRenderer:
 
     @staticmethod
     def _formatting_filter(value):
-        """Slackのマークダウン風装飾（太字・斜体）をHTMLタグに変換"""
+        """Slackのマークダウン風装飾（太字・斜体・打消し）をHTMLタグに変換"""
         if not value:
             return value
 
-        text = value
+        text = str(value)
 
-        bold_patterns = [
-            re.compile(r'(?<!\\)\*\*(.+?)(?<!\\)\*\*', re.DOTALL),
-            re.compile(r'(?<!\\)__(.+?)(?<!\\)__', re.DOTALL),
-        ]
+        placeholder_map = {
+            r"\*": "\u0000SLACK_STAR\u0000",
+            r"\_": "\u0000SLACK_UNDERSCORE\u0000",
+            r"\~": "\u0000SLACK_TILDE\u0000",
+        }
 
-        italic_patterns = [
-            re.compile(r'(?<!\\)\*(?!\*)(.+?)(?<!\\)\*(?!\*)', re.DOTALL),
-            re.compile(r'(?<!\\)_(.+?)(?<!\\)_', re.DOTALL),
-        ]
+        restore_map = {
+            "\u0000SLACK_STAR\u0000": "*",
+            "\u0000SLACK_UNDERSCORE\u0000": "_",
+            "\u0000SLACK_TILDE\u0000": "~",
+        }
 
-        for pattern in bold_patterns:
-            text = pattern.sub(lambda match: f'<strong>{match.group(1)}</strong>', text)
+        def protect_escaped_markers(segment: str) -> str:
+            protected = segment
+            for raw, placeholder in placeholder_map.items():
+                protected = protected.replace(raw, placeholder)
+            return protected
 
-        for pattern in italic_patterns:
-            text = pattern.sub(lambda match: f'<em>{match.group(1)}</em>', text)
+        def restore_placeholders(segment: str) -> str:
+            restored = segment
+            for placeholder, literal in restore_map.items():
+                restored = restored.replace(placeholder, literal)
+            return restored
 
-        # エスケープされた記号は実体に戻す
-        text = text.replace(r'\*', '*').replace(r'\_', '_')
+        code_pattern = re.compile(r'(```.*?```|`[^`]*`)', re.DOTALL)
+        parts = []
+        last_index = 0
 
-        return text
+        for match in code_pattern.finditer(text):
+            if match.start() > last_index:
+                parts.append(("text", text[last_index:match.start()]))
+            parts.append(("code", match.group(0)))
+            last_index = match.end()
+
+        if last_index < len(text):
+            parts.append(("text", text[last_index:]))
+
+        def has_valid_boundaries(segment_text: str, start: int, end: int) -> bool:
+            before = segment_text[start - 1] if start > 0 else ''
+            after = segment_text[end] if end < len(segment_text) else ''
+
+            if before and (before.isalnum() or before == '_'):
+                return False
+            if after and (after.isalnum() or after == '_'):
+                return False
+            return True
+
+        def apply_pattern(segment_text: str, pattern: re.Pattern, wrapper: Callable[[str], str]) -> str:
+            while True:
+                changed = False
+
+                def replace(match: re.Match) -> str:
+                    nonlocal changed
+                    start, end = match.span()
+                    if not has_valid_boundaries(segment_text, start, end):
+                        return match.group(0)
+
+                    inner = match.group(1)
+                    if not inner or inner[0].isspace() or inner[-1].isspace():
+                        return match.group(0)
+
+                    changed = True
+                    return wrapper(inner)
+
+                new_text = pattern.sub(replace, segment_text)
+                if not changed:
+                    return new_text
+                segment_text = new_text
+
+        def apply_markup(segment: str) -> str:
+            working = protect_escaped_markers(segment)
+
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)_\*(.+?)(?<!\\)\*_', re.DOTALL),
+                lambda inner: f'<em><strong>{inner}</strong></em>'
+            )
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)\*_(.+?)(?<!\\)_\*', re.DOTALL),
+                lambda inner: f'<strong><em>{inner}</em></strong>'
+            )
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)\*\*(.+?)(?<!\\)\*\*', re.DOTALL),
+                lambda inner: f'<strong>{inner}</strong>'
+            )
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)__(.+?)(?<!\\)__', re.DOTALL),
+                lambda inner: f'<strong>{inner}</strong>'
+            )
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)\*(?!\*)(.+?)(?<!\\)\*(?!\*)', re.DOTALL),
+                lambda inner: f'<strong>{inner}</strong>'
+            )
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)_(.+?)(?<!\\)_', re.DOTALL),
+                lambda inner: f'<em>{inner}</em>'
+            )
+            working = apply_pattern(
+                working,
+                re.compile(r'(?<!\\)~(.+?)(?<!\\)~', re.DOTALL),
+                lambda inner: f'<del>{inner}</del>'
+            )
+
+            return restore_placeholders(working)
+
+        processed_parts = []
+        for part_type, content in parts:
+            if part_type == "code":
+                processed_parts.append(content)
+            else:
+                processed_parts.append(apply_markup(content))
+
+        if not parts:
+            processed_parts.append(apply_markup(text))
+
+        return ''.join(processed_parts)
 
     def _emoji_replace_filter(self, value):
         """絵文字を画像タグに置換（純粋な置換機能）"""
@@ -197,6 +298,7 @@ class SlackMessageHtmlRenderer:
             'a',    # リンク用（URL置換機能で使用）
             'strong', 'b',  # 太字
             'em', 'i',      # 斜体
+            'del',          # 打消し線
             'code',         # インラインコード
             'pre',          # コードブロック
         ]
@@ -207,6 +309,7 @@ class SlackMessageHtmlRenderer:
             'br': [],
             'strong': [], 'b': [],
             'em': [], 'i': [],
+            'del': [],
             'code': [],
             'pre': [],
         }
