@@ -58,6 +58,15 @@ def test_formatting_filter_handles_strikethrough_and_combo(renderer):
     assert "<em><strong>very important</strong></em>" in formatted
 
 
+def test_formatting_filter_accepts_punctuation_boundaries(renderer):
+    text = "Punct (*bold*) keeps emphasis and closing *word*."
+
+    formatted = renderer._formatting_filter(text)
+
+    assert "(<strong>bold</strong>)" in formatted
+    assert "<strong>word</strong>." in formatted
+
+
 def test_formatting_filter_ignores_markers_inside_code(renderer):
     text = "`*code bold*` and ```\n_some code_\n``` stay literal, but *bold* converts."
 

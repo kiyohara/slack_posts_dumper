@@ -143,14 +143,25 @@ class SlackMessageHtmlRenderer:
             parts.append(("text", text[last_index:]))
 
         def has_valid_boundaries(segment_text: str, start: int, end: int) -> bool:
-            before = segment_text[start - 1] if start > 0 else ''
-            after = segment_text[end] if end < len(segment_text) else ''
+            if start < 0 or end > len(segment_text):
+                return False
 
-            if before and not before.isspace():
-                return False
-            if after and not after.isspace():
-                return False
-            return True
+            def boundary_char(index: int) -> Optional[str]:
+                if 0 <= index < len(segment_text):
+                    return segment_text[index]
+                return None
+
+            def is_boundary(char: Optional[str]) -> bool:
+                if char is None:
+                    return True
+                if char.isspace():
+                    return True
+                return not char.isalnum()
+
+            before_char = boundary_char(start - 1)
+            after_char = boundary_char(end)
+
+            return is_boundary(before_char) and is_boundary(after_char)
 
         def apply_pattern(segment_text: str, pattern: re.Pattern, wrapper: Callable[[str], str]) -> str:
             while True:
